@@ -1,0 +1,8 @@
+**/.DS_Store
+._*
+/build/
+/build-*/
+/engines/
+/work/
+/docs/superpowers/
+__pycache__/

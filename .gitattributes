@@ -1,0 +1,2 @@
+# The JSON header can be followed by binary PDF and image blobs.
+*.vectorcraft binary

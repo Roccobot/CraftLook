@@ -1,0 +1,27 @@
+name: Preview or thumbnail issue
+description: Report a project that looks wrong or has no preview in Finder.
+title: "[Preview] "
+body:
+  - type: textarea
+    id: symptom
+    attributes:
+      label: What did Finder show?
+      description: Mention whether it happens in the folder thumbnail, the Space-bar preview, or both.
+    validations:
+      required: true
+  - type: input
+    id: file
+    attributes:
+      label: File extension and editor version that saved it
+      placeholder: ".vectorcraft, VectorCraft 0.24.1"
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: macOS and ArtCraft Quick Look versions
+  - type: textarea
+    id: sample
+    attributes:
+      label: Small sample or reproduction steps
+      description: If possible, attach a project you can share publicly.
