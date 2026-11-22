@@ -28,7 +28,7 @@ def write(path, data):
 def info(name, kind, identifier):
     return dict(CFBundleExecutable=name, CFBundleIdentifier=identifier, CFBundleName=name,
                 CFBundleDisplayName='CraftLook', CFBundlePackageType=kind,
-                CFBundleVersion='14', CFBundleShortVersionString='0.4.2',
+                CFBundleVersion='15', CFBundleShortVersionString='0.4.3',
                 CFBundleInfoDictionaryVersion='6.0', LSMinimumSystemVersion='13.0',
                 CFBundleDevelopmentRegion='en', CFBundleSupportedPlatforms=['MacOSX'])
 
@@ -59,11 +59,12 @@ for name, point in [('Preview','preview'),('Thumbnail','thumbnail')]:
                           NSExtensionPrincipalClass=f'{name}.{name}Provider',
                           NSExtensionAttributes=attrs)
     write(app/f'Contents/PlugIns/{name}.appex/Contents/Info.plist', p)
-# The renderer service, in the thumbnail extension only: the preview extension asks Quick Look for a
-# large thumbnail, so the renderers are in the app once.
-service = info('CraftRender', 'XPC!', bundle + '.thumbnail.render')
-service['XPCService'] = {'ServiceType': 'Application'}
-write(app/'Contents/PlugIns/Thumbnail.appex/Contents/XPCServices/CraftRender.xpc/Contents/Info.plist', service)
+# The renderer service, a thin XPC in each Quick Look extension. Both run the same Helpers
+# in the app (Contents/Helpers), the one copy of the renderers.
+for name, point in [('Preview','preview'),('Thumbnail','thumbnail')]:
+    service = info('CraftRender', 'XPC!', bundle + '.' + point + '.render')
+    service['XPCService'] = {'ServiceType': 'Application'}
+    write(app/f'Contents/PlugIns/{name}.appex/Contents/XPCServices/CraftRender.xpc/Contents/Info.plist', service)
 write(app.parent/'Service.entitlements', {'com.apple.security.app-sandbox': True})
 write(app.parent/'Extension.entitlements', {
     'com.apple.security.app-sandbox': True,

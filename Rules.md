@@ -19,10 +19,16 @@
   controllandone lo SHA-256; i file SVG li disegna la CLI di VectorCraft, e la timeline delle
   sessioni di SoundCraft la disegna l'app stessa (`Sources/Timeline.swift`), su una scheda sempre
   quadrata (scelta dell'utente del 2026-11-22).
-- **I renderer sono nell'app una volta sola, nel servizio dell'estensione delle miniature**: un
-  servizio XPC risponde solo al bundle che lo contiene, quindi l'estensione delle anteprime chiede
-  a Quick Look una miniatura grande (`QLThumbnailGenerator`), che disegna l'altra estensione. Fino
-  alla build `10` del 2026-11-22 ogni estensione aveva la sua copia, e l'app pesava 3,1 GB.
+- **I renderer sono nell'app una volta sola**, in `Contents/Helpers`: le due estensioni Quick Look
+  hanno ciascuna un servizio XPC sottile (`CraftRender.xpc`) che avvia quelle stesse CLI, con un
+  collegamento fisico (`ln`) nella cartella Helpers del servizio, così la sandbox le esegue e su
+  disco resta una sola copia. Un servizio XPC risponde solo al bundle che lo contiene, quindi ogni
+  estensione ha il suo servizio, ma i renderer non si duplicano. Fino alla 0.4.2 i renderer stavano solo nel servizio delle
+  miniature e l'anteprima (Spazio) chiedeva a Quick Look una miniatura grande
+  (`QLThumbnailGenerator`); su un file SVG macOS serviva invece il generatore WebKit di sistema,
+  con un riquadro fisso che ritagliava il disegno. Dalla 0.4.3 l'estensione delle anteprime chiama
+  il proprio servizio, come quella delle miniature. Fino alla build `10` del 2026-11-22 ogni
+  estensione aveva la sua copia completa dei renderer, e l'app pesava 3,1 GB.
 - **Il servizio mette in coda le richieste**: due renderer alla volta, e chi aspetta resta in coda
   fino ai 12 secondi che un render ha comunque, invece di essere respinto (il Finder chiede molte
   miniature insieme). `Tests/service_check.sh` lo prova con richieste in parallelo.
@@ -30,6 +36,11 @@
   verde `#43B59E` della sua misura, al suo posto, ricollegato dalla CLI prima del render; se il
   render non riesce, il segnaposto copre il fotogramma (scelta dell'utente del 2026-11-22). Nella
   sandbox ogni file fuori dal progetto è illeggibile, anche se esiste.
+- **Un'immagine SVG collegata nella stessa cartella entra nel disegno**, se l'estensione può leggerla:
+  solo un nome di file nella stessa cartella (`href` e `xlink:href`, senza percorso, schema, `..`,
+  query o frammento), copiato accanto alla copia temporanea del documento. Se non si può leggere,
+  resta il segnaposto di VectorCraft. Un `clip-path` CSS non è applicato; se il font chiesto non
+  c'è, VectorCraft usa Source Sans 3 (scelta dell'utente del 2026-11-22, 0.4.3).
 - **Repo principale dal 2026-11-22** (scelta `Elenco-01` dell'utente, card `Pescatore`); la sessione
   titolare è `CraftWorks`, quella che lavora con le applicazioni della suite ArtCraft.
 
@@ -45,7 +56,7 @@
   'ArtCraft Quick Look', perché le due non mostrino gli stessi file.
 - **Versione SemVer**, con la fonte unica in `configure.py`: `CFBundleShortVersionString` è la
   versione mostrata, `CFBundleVersion` il numero di build, che sale di uno a ogni versione
-  pubblicata, non a ogni build provata. Al 2026-11-22 l'ultima pubblicata è `0.4.2` (`14`), quella
+  pubblicata, non a ogni build provata. Al 2026-11-22 l'ultima pubblicata è `0.4.3` (`15`), quella
   che porta `configure.py`; la `0.3.0` (`10`) e la `0.3.1`
   (`11`) le ha provate solo l'utente sul suo Mac, e le loro novità sono nelle note della `0.4.0`.
   Le note sono una per versione pubblicata, in `docs/release-notes/`.
@@ -138,7 +149,8 @@
   immagine o oltre i limiti, e il disegno della miniatura su tutto il contesto in pixel.
 - `Tests/samples.py` scrive con le CLI dei renderer un piccolo progetto per ogni formato che solo un
   renderer sa mostrare (nessuno è nel repo), e `Tests/HeadlessCheck.swift` li fa disegnare; il
-  progetto FilmCraft col medium cancellato deve mostrare il segnaposto.
+  progetto FilmCraft col medium cancellato deve mostrare il segnaposto, e il file SVG alto con
+  l'immagine collegata nella stessa cartella deve conservare il formato e mostrare quella immagine.
 - `Tests/service_check.sh` manda gli stessi file al servizio dell'app costruita, sandbox compresa,
   tutti insieme, e vuole un'immagine per ognuno.
 - `Tests/WindowSnapshot.swift` disegna la finestra dell'app fuori dallo schermo, nel tema chiaro e

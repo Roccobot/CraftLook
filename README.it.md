@@ -37,7 +37,7 @@ Seleziona un progetto ArtCraft nel Finder e premi **Spazio** per vederne il cont
 | EffectCraft | `.ecproj`, `.ecprojx` | La composizione attiva al suo istante corrente. |
 | SoundCraft | `.scraft` | La timeline su una scheda quadrata: le tracce, le clip dove e quanto suonano, le note MIDI, i marker e la testina. |
 | Documento Photoshop | `.psd` | Il composito che macOS legge con ImageIO. Photoshop non serve. |
-| Immagine SVG | `.svg` | Il disegno reso da VectorCraft, testo compreso. |
+| Immagine SVG | `.svg` | Il disegno reso da VectorCraft, testo e immagini collegate nella stessa cartella compresi. |
 
 PdfCraft lavora sui normali file PDF, che macOS mostra da sé.
 
@@ -73,7 +73,7 @@ Il download è di circa 720 MB, e l'app occupa circa 1,6 GB una volta estratta. 
 
 Due estensioni Quick Look danno al Finder le miniature e le anteprime più grandi. Quando un file non ha un'anteprima salvata, un servizio in sandbox avvia il renderer a riga di comando della sua app, incluso, sul Mac, su una copia temporanea del file, e mette in coda le richieste che arrivano insieme. Il disegno ha un limite di 12 secondi e un limite di 256 MiB sul file. Le anteprime di FigCraft e DesignCraft arrivano a 2048 pixel sul lato più lungo, e le miniature del Finder usano un'immagine salvata, quando c'è.
 
-Quick Look non lascia che il renderer legga i file esterni al progetto, quindi i progetti che li usano possono apparire diversi: in un fotogramma di FilmCraft ogni immagine di un altro file diventa un rettangolo verde arrotondato della sua misura, al suo posto.
+Quick Look non lascia che il renderer legga i file esterni al progetto, quindi i progetti che li usano possono apparire diversi: in un fotogramma di FilmCraft ogni immagine di un altro file diventa un rettangolo verde arrotondato della sua misura, al suo posto. In un file SVG, un'immagine collegata nella stessa cartella entra nel disegno se l'estensione può leggerla; altrimenti resta il segnaposto di VectorCraft. Un clip-path CSS non è applicato. Se un font non è disponibile, VectorCraft disegna il testo in Source Sans 3.
 
 macOS usa una sola estensione Quick Look per ogni tipo di file. Se anche un'altra app mostra i file SVG, come Looq o Gapplin, disattiva la sua estensione nelle stesse impostazioni di Quick Look, perché sia CraftLook a mostrarli.
 
@@ -99,8 +99,8 @@ I controlli dei renderer scrivono un piccolo progetto per ogni formato che solo 
 
 ```sh
 python3 Tests/samples.py "$PWD/engines" build/samples
-xcrun swiftc -parse-as-library Sources/Archive.swift Sources/DocumentImage.swift Sources/Drawing.swift Sources/Timeline.swift Sources/RenderXPC.swift Sources/HeadlessRenderer.swift Tests/HeadlessCheck.swift -o build/headlesscheck
-build/headlesscheck "build/CraftLook.app/Contents/PlugIns/Thumbnail.appex/Contents/XPCServices/CraftRender.xpc/Contents/Helpers" build/samples/* examples/river-study.vectorcraft
+xcrun swiftc -parse-as-library Sources/Archive.swift Sources/DocumentImage.swift Sources/Drawing.swift Sources/Timeline.swift Sources/RenderXPC.swift Sources/SVGResource.swift Sources/HeadlessRenderer.swift Tests/HeadlessCheck.swift -o build/headlesscheck
+build/headlesscheck "build/CraftLook.app/Contents/Helpers" build/samples/* examples/river-study.vectorcraft
 ```
 
 Il controllo del servizio manda gli stessi file al servizio dei renderer dell'app, nella sua sandbox, tutti insieme, e vuole un'immagine per ognuno.

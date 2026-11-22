@@ -5,7 +5,7 @@ import OSLog
 
 @objc protocol RenderServiceProtocol {
     func render(_ document: Data, fileExtension: String, maxSide: Int,
-                reply: @escaping (Data?) -> Void)
+                resources: [String: Data], reply: @escaping (Data?) -> Void)
 }
 
 enum RenderXPC {
@@ -33,6 +33,34 @@ enum RenderXPC {
         return bytes as Data
     }
 
+    /// The picture the thumbnail or preview extension shows for `file`: the renderer first when
+    /// that is the large view, otherwise the image saved in the file, otherwise the renderer.
+    static func picture(_ file: URL, maxSide: Int, service: String) throws -> CGImage {
+        let ext = file.pathExtension.lowercased()
+        if rendersFirst(ext, maxSide: maxSide), let image = render(file, maxSide: maxSide, service: service) {
+            return image
+        }
+        if let embedded = try? DocumentImage.load(file, maxSide: maxSide) { return embedded }
+        if let image = render(file, maxSide: maxSide, service: service) { return image }
+        throw ReadError.unavailable
+    }
+
+    /// The Helpers folder: first the copy inside this service (hard links to the app's one set of
+    /// renderers, which the sandbox can run), then the app's Contents/Helpers.
+    static func helpers(from bundle: URL = Bundle.main.bundleURL) -> URL? {
+        let fm = FileManager.default
+        func usable(_ tools: URL) -> URL? {
+            fm.isExecutableFile(atPath: tools.appendingPathComponent("vectorcraft-cli").path) ? tools : nil
+        }
+        if let tools = usable(bundle.appendingPathComponent("Contents/Helpers", isDirectory: true)) { return tools }
+        var url = bundle
+        for _ in 0..<8 {
+            url.deleteLastPathComponent()
+            if let tools = usable(url.appendingPathComponent("Helpers", isDirectory: true)) { return tools }
+        }
+        return nil
+    }
+
     /// The picture the renderer service draws for `file`; `service` is the service's bundle identifier.
     static func render(_ file: URL, maxSide: Int, service: String) -> CGImage? {
         let ext = file.pathExtension.lowercased()
@@ -42,6 +70,7 @@ enum RenderXPC {
               let fh = try? FileHandle(forReadingFrom: file) else { return nil }
         defer { try? fh.close() }
         guard let document = try? readAt(fh, 0, size) else { return nil }
+        let resources = ext == "svg" ? SVGResource.contents(in: document, nextTo: file, limit: imageLimit) : [:]
 
         let connection = NSXPCConnection(serviceName: service)
         connection.remoteObjectInterface = NSXPCInterface(with: RenderServiceProtocol.self)
@@ -56,7 +85,7 @@ enum RenderXPC {
             log.error("Renderer connection failed: \(String(describing: error), privacy: .public)")
             result.finish(nil)
         }) as? RenderServiceProtocol else { return nil }
-        remote.render(document, fileExtension: ext, maxSide: maxSide) { result.finish($0) }
+        remote.render(document, fileExtension: ext, maxSide: maxSide, resources: resources) { result.finish($0) }
 
         guard let bytes = result.wait(), bytes.count <= imageLimit,
               let image = CGImageSourceCreateWithData(bytes as CFData, nil) else { return nil }

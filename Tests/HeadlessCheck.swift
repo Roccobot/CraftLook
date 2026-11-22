@@ -6,6 +6,7 @@ import CoreGraphics
         let tools = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
         for path in CommandLine.arguments.dropFirst(2) {
             let file = URL(fileURLWithPath: path)
+            guard RenderXPC.renderers[file.pathExtension.lowercased()] != nil else { continue }
             let start = Date()
             guard let image = HeadlessRenderer.render(file, maxSide: 2048, tools: tools),
                   max(image.width,image.height) >= 600 else {
@@ -17,6 +18,18 @@ import CoreGraphics
             if file.lastPathComponent.hasPrefix("offline."),
                zip(pixel(image, 0.25, 0.5), [0x43, 0xB5, 0x9E]).contains(where: { abs($0 - $1) > 8 }) {
                 throw failure("\(file.lastPathComponent) non mostra il segnaposto (\(pixel(image, 0.25, 0.5)))")
+            }
+            // A tall SVG with a same-folder PNG must keep its aspect and show that picture, not a crop
+            // or a missing-image placeholder.
+            if file.lastPathComponent.hasPrefix("linked.") {
+                let aspect = Double(image.width) / Double(image.height)
+                if abs(aspect - 1200.0 / 2670.0) > 0.01 || max(image.width, image.height) != 2048 {
+                    throw failure("\(file.lastPathComponent) non conserva il formato (\(image.width) × \(image.height))")
+                }
+                // The swatch is centred at (600, 690) in the 1200 × 2670 viewBox.
+                if zip(pixel(image, 0.5, 690.0 / 2670.0), [0, 200, 40]).contains(where: { abs($0 - $1) > 16 }) {
+                    throw failure("\(file.lastPathComponent) non mostra l'immagine collegata (\(pixel(image, 0.5, 690.0 / 2670.0)))")
+                }
             }
             print(String(format: "%@: %d × %d, %.2f s", file.lastPathComponent, image.width, image.height, seconds))
         }

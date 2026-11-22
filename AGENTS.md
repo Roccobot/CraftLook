@@ -300,8 +300,8 @@ Un file più specifico vince **dove parla**, e il suo silenzio non è una deroga
 - **Si aggiorna con Sparkle 2** dall'appcast allegato a ogni release; ⚠️⚠️ la chiave EdDSA privata
   (account `craftlook` del Portachiavi di Rocco) non si legge, non si stampa e non entra mai nel
   repo né in chat (`Rules.md` § '🔄 Aggiornamenti').
-- **I renderer sono nell'app una volta sola**, nel servizio XPC dell'estensione delle miniature, che
-  mette in coda le richieste (`Rules.md` § '🧭 Che cos'è').
+- **I renderer sono nell'app una volta sola**, in `Contents/Helpers`; ogni estensione Quick Look ha
+  un servizio XPC sottile che li avvia e mette in coda le richieste (`Rules.md` § '🧭 Che cos'è').
 - **Il martin pescatore e il marchio di Roccobot non si toccano**: l'icona, le sue immagini e il marchio sono fuori dalla licenza MIT del
   codice (`ARTWORK.md`), e si usano così come sono; i renderer tengono le licenze dei progetti
   originali (`THIRD_PARTY.md`) (`Rules.md` § '⚖️ Licenze e illustrazione').

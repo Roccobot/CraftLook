@@ -37,7 +37,7 @@ Select an ArtCraft project in Finder and press **Space** to see what's inside, w
 | EffectCraft | `.ecproj`, `.ecprojx` | The active composition at its current time. |
 | SoundCraft | `.scraft` | The timeline on a square card: tracks, clips where and as long as they play, MIDI notes, markers and playhead. |
 | Photoshop document | `.psd` | The composite that macOS ImageIO can read. Photoshop is optional. |
-| SVG image | `.svg` | The drawing rendered by VectorCraft, text included. |
+| SVG image | `.svg` | The drawing rendered by VectorCraft, text and same-folder linked images included. |
 
 PdfCraft works on standard PDF files, which macOS previews by itself.
 
@@ -73,7 +73,7 @@ The download is about 720 MB, and the app takes about 1.6 GB once unzipped. Almo
 
 Two Quick Look extensions give Finder the thumbnails and the larger previews. When a file has no saved preview, a sandboxed service runs the bundled command-line renderer of its app, on your Mac, on a temporary copy of the file, and queues requests that arrive together. Rendering has a 12-second time limit and a 256 MiB input limit. FigCraft and DesignCraft previews reach 2048 pixels on the longest side, and Finder thumbnails prefer a saved image when there is one.
 
-Quick Look doesn't let the renderer read files outside the project, so projects that use them may look different: in a FilmCraft frame, each picture from another file becomes a green rounded rectangle of its size, in its place.
+Quick Look doesn't let the renderer read files outside the project, so projects that use them may look different: in a FilmCraft frame, each picture from another file becomes a green rounded rectangle of its size, in its place. For an SVG file, a linked image in the same folder is included when the extension can read it; otherwise VectorCraft leaves its own placeholder. CSS clip-path is not applied. If a font isn't available, VectorCraft draws the text in Source Sans 3.
 
 macOS uses one Quick Look extension for each file type. If another app also previews SVG files, such as Looq or Gapplin, turn its extension off in the same Quick Look settings so that CraftLook shows them.
 
@@ -99,8 +99,8 @@ The renderer checks write a small project for each format that only a renderer c
 
 ```sh
 python3 Tests/samples.py "$PWD/engines" build/samples
-xcrun swiftc -parse-as-library Sources/Archive.swift Sources/DocumentImage.swift Sources/Drawing.swift Sources/Timeline.swift Sources/RenderXPC.swift Sources/HeadlessRenderer.swift Tests/HeadlessCheck.swift -o build/headlesscheck
-build/headlesscheck "build/CraftLook.app/Contents/PlugIns/Thumbnail.appex/Contents/XPCServices/CraftRender.xpc/Contents/Helpers" build/samples/* examples/river-study.vectorcraft
+xcrun swiftc -parse-as-library Sources/Archive.swift Sources/DocumentImage.swift Sources/Drawing.swift Sources/Timeline.swift Sources/RenderXPC.swift Sources/SVGResource.swift Sources/HeadlessRenderer.swift Tests/HeadlessCheck.swift -o build/headlesscheck
+build/headlesscheck "build/CraftLook.app/Contents/Helpers" build/samples/* examples/river-study.vectorcraft
 ```
 
 The service check sends the same files to the app's renderer service, in its sandbox, all at once, and expects a picture for each.

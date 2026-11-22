@@ -25,7 +25,7 @@ updater=()
 if [[ -n "$engines" && -d "$engines/sparkle/Sparkle.framework" ]]; then
   updater=(-F "$engines/sparkle" -framework Sparkle -Xlinker -rpath -Xlinker @executable_path/../Frameworks)
 fi
-common=(Sources/Archive.swift Sources/DocumentImage.swift Sources/Drawing.swift Sources/Timeline.swift Sources/RenderXPC.swift)
+common=(Sources/Archive.swift Sources/DocumentImage.swift Sources/Drawing.swift Sources/Timeline.swift Sources/RenderXPC.swift Sources/SVGResource.swift)
 for arch in arm64 x86_64; do
   flags=(-target "$arch-apple-macos13.0" -module-cache-path "$build/cache" -O)
   xcrun swiftc "${flags[@]}" -parse-as-library ${updater[@]+"${updater[@]}"} Sources/Host.swift Sources/Intro.swift \
@@ -50,19 +50,26 @@ if [[ -n "$engines" ]]; then
     "${sign[@]}" --preserve-metadata=entitlements "$target"
   done
 fi
+xcrun lipo -create "$build/CraftRender-arm64" "$build/CraftRender-x86_64" -output "$build/CraftRender"
+if [[ -n "$engines" ]]; then
+  mkdir -p "$app/Contents/Helpers"
+  mv "$build"/engine-binaries/*-cli "$app/Contents/Helpers/"
+fi
 for name in Preview Thumbnail; do
   ext="$app/Contents/PlugIns/$name.appex"
   mkdir -p "$ext/Contents/MacOS"
   xcrun lipo -create "$build/$name-arm64" "$build/$name-x86_64" -output "$ext/Contents/MacOS/$name"
+  # The same thin service in each extension. The CLIs live once in Contents/Helpers; a hard link
+  # in the service lets the sandbox run them without a second copy on disk.
+  service="$ext/Contents/XPCServices/CraftRender.xpc"
+  mkdir -p "$service/Contents/MacOS"
+  cp "$build/CraftRender" "$service/Contents/MacOS/CraftRender"
+  if [[ -n "$engines" ]]; then
+    mkdir -p "$service/Contents/Helpers"
+    ln "$app/Contents/Helpers/"*-cli "$service/Contents/Helpers/"
+  fi
+  "${sign[@]}" --entitlements "$build/Service.entitlements" "$service"
 done
-service="$app/Contents/PlugIns/Thumbnail.appex/Contents/XPCServices/CraftRender.xpc"
-mkdir -p "$service/Contents/MacOS"
-xcrun lipo -create "$build/CraftRender-arm64" "$build/CraftRender-x86_64" -output "$service/Contents/MacOS/CraftRender"
-if [[ -n "$engines" ]]; then
-  mkdir -p "$service/Contents/Helpers"
-  mv "$build"/engine-binaries/*-cli "$service/Contents/Helpers/"
-fi
-"${sign[@]}" --entitlements "$build/Service.entitlements" "$service"
 for name in Preview Thumbnail; do
   "${sign[@]}" --entitlements "$build/Extension.entitlements" "$app/Contents/PlugIns/$name.appex"
 done

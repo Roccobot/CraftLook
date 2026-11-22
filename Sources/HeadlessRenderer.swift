@@ -26,6 +26,10 @@ enum HeadlessRenderer {
             let output = scratch.appendingPathComponent("preview.png")
             phase = "input"
             try fm.copyItem(at: file, to: input)
+            if ext == "svg", let data = try? Data(contentsOf: file) {
+                try SVGResource.write(SVGResource.contents(in: data, nextTo: file, limit: RenderXPC.imageLimit),
+                                      to: scratch, limit: RenderXPC.imageLimit)
+            }
             func run(_ args: [String]) throws -> Bool {
                 try launch(executable, args, in: scratch, deadline: deadline, name: name)
             }

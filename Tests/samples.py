@@ -3,8 +3,9 @@
 
 Each sample comes from its app's CLI (the built-in demo or a template), so none is kept in the repo.
 The SVG draws its label with a real <text> element in a font family most Macs don't have.
-offline.fcproj covers the frame with a still that is then deleted, as Quick Look sees a project whose
-media are elsewhere."""
+linked.svg is a tall 1200 x 2670 drawing that references a same-folder PNG, as Quick Look sees an
+SVG with a local image. offline.fcproj covers the frame with a still that is then deleted, as Quick
+Look sees a project whose media are elsewhere."""
 import json, pathlib, struct, subprocess, sys, tempfile, zlib
 
 SVG = '''<?xml version="1.0" encoding="UTF-8"?>
@@ -15,6 +16,17 @@ SVG = '''<?xml version="1.0" encoding="UTF-8"?>
         font-weight="bold" fill="#fff">MP4</text>
   <text transform="matrix(4 0 0 4 400 720)" text-anchor="middle" font-family="Georgia, serif" font-size="20"
         fill="#c00">video</text>
+</svg>
+'''
+
+
+LINKED = '''<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="1200" height="2670" viewBox="0 0 1200 2670">
+  <rect width="1200" height="2670" fill="#151b1a"/>
+  <image x="271" y="361" width="658" height="658" xlink:href="swatch.png"/>
+  <text x="1042" y="283" text-anchor="end"
+        font-family="Roboto" font-weight="500" font-size="52" fill="#4fd9be">Ripristina</text>
 </svg>
 '''
 
@@ -51,6 +63,8 @@ def main(engines, out):
     for ext in ('ecproj', 'ecprojx'):
         run(cli('effectcraft'), '--demo', 'exec', 'file.saveAs', '--params', json.dumps({'path': str(out / f'demo.{ext}')}))
     (out / 'label.svg').write_text(SVG)
+    (out / 'swatch.png').write_bytes(png(64, 64, (0, 200, 40)))
+    (out / 'linked.svg').write_text(LINKED)
     print('\n'.join(sorted(str(p) for p in out.iterdir() if not p.name.startswith('.'))))
 
 if __name__ == '__main__':

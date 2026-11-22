@@ -17,7 +17,7 @@ private final class Renderer: NSObject, RenderServiceProtocol, NSXPCListenerDele
     }
 
     func render(_ document: Data, fileExtension: String, maxSide: Int,
-                reply: @escaping (Data?) -> Void) {
+                resources: [String: Data], reply: @escaping (Data?) -> Void) {
         guard RenderXPC.supported.contains(fileExtension),
               (1...RenderXPC.inputLimit).contains(document.count),
               (1...2048).contains(maxSide) else {
@@ -40,7 +40,12 @@ private final class Renderer: NSObject, RenderServiceProtocol, NSXPCListenerDele
                 defer { try? fm.removeItem(at: temp) }
                 let file = temp.appendingPathComponent("project." + fileExtension)
                 try document.write(to: file)
-                let tools = Bundle.main.bundleURL.appendingPathComponent("Contents/Helpers", isDirectory: true)
+                try SVGResource.write(resources, to: temp, limit: RenderXPC.imageLimit)
+                guard let tools = RenderXPC.helpers() else {
+                    self.log.error("Renderer helpers are missing")
+                    reply(nil)
+                    return
+                }
                 let image = HeadlessRenderer.render(file, maxSide: maxSide, tools: tools, deadline: deadline)
                 reply(image.flatMap(RenderXPC.png))
             } catch {
