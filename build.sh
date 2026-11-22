@@ -6,6 +6,11 @@ engines="${2:-}"
 if [[ -n "$engines" ]]; then engines="$(cd "$engines" && pwd)"; fi
 mkdir -p "$build"
 build="$(cd "$build" && pwd)"
+# Signing: a Developer ID Application identity in CRAFTLOOK_SIGN_ID, for notarization, or ad hoc.
+# Every piece gets the hardened runtime, inside out; a real identity also gets a secure timestamp.
+identity="${CRAFTLOOK_SIGN_ID:--}"
+sign=(codesign --force --options runtime --sign "$identity")
+if [[ "$identity" == "-" ]]; then sign+=(--timestamp=none); else sign+=(--timestamp); fi
 app="$build/CraftLook.app"
 rm -rf "$app"
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources" "$build/cache"
@@ -31,7 +36,9 @@ if [[ -n "$engines" ]]; then
     target="$build/engine-binaries/$name-cli"
     cp "$source/$name-cli" "$target"
     ditto "$source/Notices" "$app/Contents/Resources/Notices/$name"
-    codesign --force --sign - "$target"
+    # Each renderer keeps the entitlements of its upstream signature: only SolidCraft has one,
+    # allow-unsigned-executable-memory, for the WebAssembly code its wasmtime compiles.
+    "${sign[@]}" --preserve-metadata=entitlements "$target"
   done
 fi
 for name in Preview Thumbnail; do
@@ -46,10 +53,10 @@ if [[ -n "$engines" ]]; then
   mkdir -p "$service/Contents/Helpers"
   mv "$build"/engine-binaries/*-cli "$service/Contents/Helpers/"
 fi
-codesign --force --sign - --entitlements "$build/Service.entitlements" "$service"
+"${sign[@]}" --entitlements "$build/Service.entitlements" "$service"
 for name in Preview Thumbnail; do
-  codesign --force --sign - --entitlements "$build/Extension.entitlements" "$app/Contents/PlugIns/$name.appex"
+  "${sign[@]}" --entitlements "$build/Extension.entitlements" "$app/Contents/PlugIns/$name.appex"
 done
-codesign --force --sign - "$app"
+"${sign[@]}" "$app"
 codesign --verify --deep --strict "$app"
 echo "$app"

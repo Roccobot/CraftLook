@@ -35,7 +35,7 @@ Select an ArtCraft project in Finder and press **Space** to see what's inside, w
 | FilmCraft | `.fcproj` | The frame of the active sequence at the saved playhead. A green rounded rectangle takes the place of each picture Quick Look can't read. |
 | MaterialCraft | `.mcraft` | The material rendered on the app's 3D scene. |
 | EffectCraft | `.ecproj`, `.ecprojx` | The active composition at its current time. |
-| SoundCraft | `.scraft` | The timeline: tracks, clips where and as long as they play, MIDI notes, markers and playhead. |
+| SoundCraft | `.scraft` | The timeline on a square card: tracks, clips where and as long as they play, MIDI notes, markers and playhead. |
 | Photoshop document | `.psd` | The composite that macOS ImageIO can read. Photoshop is optional. |
 | SVG image | `.svg` | The drawing rendered by VectorCraft, text included. |
 
@@ -99,6 +99,12 @@ The service check sends the same files to the app's renderer service, in its san
 
 ```sh
 Tests/service_check.sh "build/CraftLook.app" build/samples/* examples/river-study.vectorcraft
+```
+
+Every part of the app is signed with the hardened runtime, ad hoc by default. A release is signed with a Developer ID Application identity, notarized by Apple, stapled and packaged with its SHA-256 checksums. The notary credentials are a keychain profile saved once with `xcrun notarytool store-credentials craftlook-notary`.
+
+```sh
+CRAFTLOOK_SIGN_ID="Developer ID Application: NAME (TEAM)" scripts/release.sh "$PWD/release" "$PWD/engines"
 ```
 
 ## Format sources

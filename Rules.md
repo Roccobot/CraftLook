@@ -17,7 +17,8 @@
   progetto. I renderer sono le CLI universali di FigCraft, DesignCraft, VectorCraft, TextureCraft,
   SolidCraft, FilmCraft, MaterialCraft ed EffectCraft, che `scripts/prepare_renderers.py` scarica
   controllandone lo SHA-256; i file SVG li disegna la CLI di VectorCraft, e la timeline delle
-  sessioni di SoundCraft la disegna l'app stessa (`Sources/Timeline.swift`).
+  sessioni di SoundCraft la disegna l'app stessa (`Sources/Timeline.swift`), su una scheda sempre
+  quadrata (scelta dell'utente del 2026-11-22).
 - **I renderer sono nell'app una volta sola, nel servizio dell'estensione delle miniature**: un
   servizio XPC risponde solo al bundle che lo contiene, quindi l'estensione delle anteprime chiede
   a Quick Look una miniatura grande (`QLThumbnailGenerator`), che disegna l'altra estensione. Fino
@@ -35,7 +36,7 @@
 ## 🌿 Ramo e versione
 
 - **Ramo principale `main`.**
-- **L'app si chiama CraftLook dalla 0.3.0** (scelta dell'utente del 2026-11-22): `CraftLook.app`,
+- **L'app si chiama CraftLook dalla 0.3.1**, la prima release col nome nuovo (scelta dell'utente del 2026-11-22): `CraftLook.app`,
   identificativi `com.roccobot.craftlook`, `.preview`, `.thumbnail` e `.thumbnail.render`, archivi
   `craftlook-<versione>-macos.zip`, `-source.zip` e `-SHA256.txt`. Fino alla 0.2.5 era 'ArtCraft
   Quick Look', con gli identificativi `org.artcraftquicklook.local` e il repo `artcraft-quick-look`,
@@ -45,9 +46,19 @@
 - **Versione SemVer**, con la fonte unica in `configure.py`: `CFBundleShortVersionString` è la
   versione mostrata, `CFBundleVersion` il numero di build, che sale di uno a ogni versione
   pubblicata, non a ogni build provata. Al 2026-11-22 l'ultima pubblicata è `0.2.5` (`9`), e
-  `configure.py` porta già `0.3.0` (`10`), la versione in preparazione.
+  `configure.py` porta `0.3.1` (`11`), la versione in preparazione: la `0.3.0` (`10`) l'ha
+  provata solo l'utente sul suo Mac, e le sue novità sono nelle note della `0.3.1`
+  (`docs/release-notes/0.3.1.md`), una per versione pubblicata.
 - **Una versione pubblicata è una release di GitHub** di questo repo, con l'app costruita da
-  `build.sh`, firmata ad hoc e non notarizzata da Apple (lo dice il README).
+  `scripts/release.sh`: `build.sh` con l'identità Developer ID Application di
+  `CRAFTLOOK_SIGN_ID`, la notarizzazione col profilo `craftlook-notary` di `notarytool`, la
+  graffetta (`stapler`) e gli archivi con gli SHA-256. Senza identità `build.sh` firma ad hoc,
+  per le prove; finché una release non è notarizzata lo dice il README.
+- **Ogni parte dell'app ha il runtime protetto** (`--options runtime`), firmata dall'interno verso
+  l'esterno: renderer, servizio, estensioni, app. I renderer tengono gli entitlement della firma
+  originale (`--preserve-metadata=entitlements`): solo SolidCraft ne ha uno,
+  `com.apple.security.cs.allow-unsigned-executable-memory`, perché il suo wasmtime compila
+  WebAssembly; servizio ed estensioni tengono la sandbox.
 
 ## 🧰 Build e prove
 

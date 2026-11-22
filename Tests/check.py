@@ -55,6 +55,9 @@ def all_files(d):
                        {'name':'Tastiere','kind':'Instrument','color':[80,190,168],'active_playlist':0,'playlists':[{'clips':[{'name':'Accordi','start':48000,'length':96000,
                         'content':{'Midi':{'sequence':{'notes':[{'pitch':60,'start':0,'length':900},{'pitch':64,'start':960,'length':900}]}}}}]}]}]}
     (d/'session.scraft').write_text(json.dumps(session))
+    crowded=dict(session,name='Affollata',tracks=[dict(session['tracks'][0],name=f'Traccia {i}',playlists=[{'clips':[{'name':'Clip','start':i*48000*60,'length':48000*30}]}]) for i in range(64)])
+    (d/'crowded.scraft').write_text(json.dumps(crowded))
+    (d/'solo.scraft').write_text(json.dumps(dict(session,name='Sola',tracks=session['tracks'][:1])))
     (d/'notes.scraft').write_text(json.dumps({'name':'Senza formato','tracks':[]}))
     (d/'input.png').write_bytes(red)
     header=struct.pack('>4sH6xHIIHH',b'8BPS',1,3,2,2,8,3)
@@ -86,10 +89,11 @@ if __name__=='__main__':
             expected='2048x2048 ff0000' if '-pdf.vectorcraft' in name else '2x2 ff0000'
             assert result.stdout.decode().strip()==expected,(name,result.stdout)
             checks+=1
-        # A SoundCraft session is drawn as its timeline: a card 1600 points wide and 560 high at 2048 pixels.
-        result=subprocess.run([command,d/'session.scraft'],capture_output=True)
-        assert result.returncode==0 and result.stdout.decode().split()[0]=='2048x717',('session.scraft',result.stdout,result.stderr)
-        checks+=1
+        # A SoundCraft session is drawn as its timeline, on a square card whatever its tracks and length.
+        for name in ['session.scraft','crowded.scraft','solo.scraft']:
+            result=subprocess.run([command,d/name],capture_output=True)
+            assert result.returncode==0 and result.stdout.decode().split()[0]=='2048x2048',(name,result.stdout,result.stderr)
+            checks+=1
         for name in ['notes.scraft','broken.figcraft','absent.tcraft','wrong.figcraft','other.drawcraft','oversized.figcraft','forged.psd','escape.pcraft']:
             result=subprocess.run([command,d/name],capture_output=True)
             assert result.returncode!=0,(name,result.stdout)

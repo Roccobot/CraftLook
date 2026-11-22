@@ -4,12 +4,13 @@ import CoreGraphics
 /// The timeline of a SoundCraft session (.scraft, JSON), drawn as a diagram: one lane per track,
 /// its clips where and as long as they play, MIDI notes inside instrument clips, markers and playhead.
 /// SoundCraft counts time in samples at the session's rate and MIDI notes in ticks of 1/960 of a beat.
+/// The card is always square, like a Finder thumbnail: the lanes share its height, whatever the session.
 enum Timeline {
     private struct Clip { let start, length: Double; let name: String; let muted: Bool
                           let fadeIn, fadeOut: Double; let notes: [(start: Double, length: Double, pitch: Int)] }
     private struct Track { let name: String; let color: CGColor; let muted: Bool; let clips: [Clip] }
     private static let ticksPerBeat = 960.0
-    private static let width: CGFloat = 1600
+    private static let side: CGFloat = 1600
 
     static func image(_ data: Data, maxSide: Int) throws -> CGImage {
         guard let root = try JSONSerialization.jsonObject(with: data) as? [String: Any],
@@ -30,21 +31,22 @@ enum Timeline {
         let playhead = number((root["edit"] as? [String: Any])?["playhead"])
         let end = max(rate, ([0] + tracks.flatMap { $0.clips.map { $0.start + $0.length } } + markers.map { $0.0 }).max()!) * 1.03
 
-        // The layout, in points of a 1600-point-wide card.
+        // The layout, in points of a square card 1600 points wide: the lanes fill the height under the ruler,
+        // up to 240 points each, and a few tall lanes sit in the middle of it.
+        let width = side, height = side
         let header: CGFloat = 96, ruler: CGFloat = 36, left: CGFloat = 232, right: CGFloat = 28, bottom: CGFloat = 28
-        let lane = tracks.isEmpty ? 72 : max(22, min(72, (1000 - header - ruler - bottom) / CGFloat(tracks.count)))
-        let height = max(560, header + ruler + lane * CGFloat(max(tracks.count, 1)) + bottom)
-        let side = CGFloat(min(2048, max(16, maxSide)))
-        let scale = side / max(width, height)
-        let context = try Drawing.canvas(width: Int((width * scale).rounded()), height: Int((height * scale).rounded()),
-                                         scale: scale)
+        let area = height - header - ruler - bottom
+        let lane = min(240, area / CGFloat(max(tracks.count, 1)))
+        let pixels = CGFloat(min(2048, max(16, maxSide)))
+        let scale = pixels / side
+        let context = try Drawing.canvas(width: Int(pixels), height: Int(pixels), scale: scale)
         let readable = 11 * scale >= 5
         let span = width - left - right
         func x(_ sample: Double) -> CGFloat { left + CGFloat(sample / end) * span }
 
         Drawing.roundedRect(context, CGRect(x: 0, y: 0, width: width, height: height), radius: 28,
                             fill: Drawing.color(0x1B, 0x1D, 0x21))
-        let top = header + ruler
+        let top = header + ruler, lanes = top + (area - lane * CGFloat(tracks.count)) / 2
         let white = Drawing.color(0xF2, 0xF2, 0xF2), grey = Drawing.color(0x9A, 0xA0, 0xA8)
         if readable {
             Drawing.text(context, root["name"] as? String ?? "", at: CGPoint(x: 32, y: 22), size: 34, bold: true,
@@ -71,7 +73,7 @@ enum Timeline {
         }
 
         for (row, track) in tracks.enumerated() {
-            let y = top + lane * CGFloat(row)
+            let y = lanes + lane * CGFloat(row)
             if row % 2 == 1 {
                 context.setFillColor(Drawing.color(255, 255, 255, 0.025))
                 context.fill(CGRect(x: 16, y: y, width: width - 32, height: lane))
@@ -79,8 +81,9 @@ enum Timeline {
             let color = track.muted ? Drawing.color(0x5A, 0x5F, 0x66) : track.color
             Drawing.roundedRect(context, CGRect(x: 24, y: y + lane * 0.2, width: 6, height: lane * 0.6), radius: 3, fill: color)
             if readable, lane >= 24 {
-                Drawing.text(context, track.name, at: CGPoint(x: 42, y: y + (lane - min(20, lane * 0.4) * 1.25) / 2),
-                             size: min(20, lane * 0.4), bold: true, color: track.muted ? grey : white, width: left - 54)
+                let size = min(26, lane * 0.4)
+                Drawing.text(context, track.name, at: CGPoint(x: 42, y: y + (lane - size * 1.25) / 2),
+                             size: size, bold: true, color: track.muted ? grey : white, width: left - 54)
             }
             for clip in track.clips {
                 let box = CGRect(x: x(clip.start), y: y + 5, width: max(2, x(clip.start + clip.length) - x(clip.start)),
@@ -145,7 +148,7 @@ enum Timeline {
         }
         context.restoreGState()
         if readable, box.width > 48, box.height >= 20, clip.notes.isEmpty {
-            Drawing.text(context, clip.name, at: CGPoint(x: box.minX + 8, y: box.minY + 4), size: min(14, box.height * 0.36),
+            Drawing.text(context, clip.name, at: CGPoint(x: box.minX + 8, y: box.minY + 4), size: min(18, box.height * 0.3),
                          bold: true, color: Drawing.color(0x10, 0x12, 0x14, 0.85), width: box.width - 14)
         }
     }

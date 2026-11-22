@@ -35,7 +35,7 @@ Seleziona un progetto ArtCraft nel Finder e premi **Spazio** per vederne il cont
 | FilmCraft | `.fcproj` | Il fotogramma della sequenza attiva sotto la testina di riproduzione salvata. Un rettangolo verde arrotondato prende il posto di ogni immagine che Quick Look non può leggere. |
 | MaterialCraft | `.mcraft` | Il materiale disegnato sulla scena 3D dell'app. |
 | EffectCraft | `.ecproj`, `.ecprojx` | La composizione attiva al suo istante corrente. |
-| SoundCraft | `.scraft` | La timeline: le tracce, le clip dove e quanto suonano, le note MIDI, i marker e la testina. |
+| SoundCraft | `.scraft` | La timeline su una scheda quadrata: le tracce, le clip dove e quanto suonano, le note MIDI, i marker e la testina. |
 | Documento Photoshop | `.psd` | Il composito che macOS legge con ImageIO. Photoshop non serve. |
 | Immagine SVG | `.svg` | Il disegno reso da VectorCraft, testo compreso. |
 
@@ -99,6 +99,12 @@ Il controllo del servizio manda gli stessi file al servizio dei renderer dell'ap
 
 ```sh
 Tests/service_check.sh "build/CraftLook.app" build/samples/* examples/river-study.vectorcraft
+```
+
+Ogni parte dell'app è firmata col runtime protetto, ad hoc se non si indica altro. Una release è firmata con un'identità Developer ID Application, notarizzata da Apple, graffettata e impacchettata con i suoi checksum SHA-256. Le credenziali di notarizzazione sono un profilo del portachiavi salvato una volta con `xcrun notarytool store-credentials craftlook-notary`.
+
+```sh
+CRAFTLOOK_SIGN_ID="Developer ID Application: NOME (TEAM)" scripts/release.sh "$PWD/release" "$PWD/engines"
 ```
 
 ## Fonti dei formati
