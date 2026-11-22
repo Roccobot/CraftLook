@@ -154,6 +154,14 @@ enum DocumentImage {
         return try image(src, maxSide: maxSide)
     }
 
+    /// Draws an image over the whole of a Quick Look thumbnail context.
+    static func fill(_ context: CGContext, with image: CGImage) {
+        // The context holds contextSize × scale pixels with no scale transform, so a
+        // rectangle in points would fill only its lower-left part on a Retina request.
+        let pixels = CGRect(x: 0, y: 0, width: context.width, height: context.height)
+        context.draw(image, in: context.convertToUserSpace(pixels))
+    }
+
     static func image(_ src: CGImageSource, maxSide: Int) throws -> CGImage {
         guard let props = CGImageSourceCopyPropertiesAtIndex(src, 0, nil) as? [CFString: Any],
               let w = props[kCGImagePropertyPixelWidth] as? Int,

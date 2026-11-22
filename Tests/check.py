@@ -66,6 +66,11 @@ if __name__=='__main__':
     assert command.is_file(), 'The preview renderer has not been built'
     if len(sys.argv)>2:
         target=pathlib.Path(sys.argv[2]); target.mkdir(parents=True,exist_ok=True); all_files(target); sys.exit()
+    checks=0
+    # A Retina thumbnail: 128 x 64 points at scale 2 arrive as a 256 x 128 pixel context.
+    result=subprocess.run([command,'--fill','256','128'],capture_output=True)
+    assert result.returncode==0 and result.stdout.decode().split()==['ff0000']*4,('fill',result.stdout,result.stderr)
+    checks+=1
     with tempfile.TemporaryDirectory() as tmp:
         d=pathlib.Path(tmp); all_files(d)
         for name in ['fig.figcraft','design.designcraft','texture.tcraft','photo.pcraft','vector.vectorcraft','compressed.vectorcraft','stream.vectorcraft','inline-pdf.vectorcraft','linked-pdf.vectorcraft','compressed-pdf.vectorcraft','package.pcraft','image.psd']:
@@ -73,7 +78,9 @@ if __name__=='__main__':
             assert result.returncode==0,(name,result.stderr)
             expected='2048x2048 ff0000' if '-pdf.vectorcraft' in name else '2x2 ff0000'
             assert result.stdout.decode().strip()==expected,(name,result.stdout)
+            checks+=1
         for name in ['broken.figcraft','absent.tcraft','wrong.figcraft','other.drawcraft','oversized.figcraft','forged.psd','escape.pcraft']:
             result=subprocess.run([command,d/name],capture_output=True)
             assert result.returncode!=0,(name,result.stdout)
-        print('19 verifiche riuscite')
+            checks+=1
+        print(f'{checks} verifiche riuscite')

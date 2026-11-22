@@ -20,7 +20,7 @@ final class ThumbnailProvider: QLThumbnailProvider {
             let size = CGSize(width: max(1, floor(CGFloat(image.width) * factor)),
                               height: max(1, floor(CGFloat(image.height) * factor)))
             handler(QLThumbnailReply(contextSize: size, drawing: { context in
-                context.draw(image, in: CGRect(origin: .zero, size: size))
+                DocumentImage.fill(context, with: image)
                 return true
             }), nil)
         } catch {
