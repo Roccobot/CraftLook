@@ -285,10 +285,14 @@ Un file più specifico vince **dove parla**, e il suo silenzio non è una deroga
   `CFBundleVersion`, il numero di build, che sale a ogni versione pubblicata (`Rules.md` § '🌿 Ramo
   e versione').
 - **Build e prove solo su macOS, con gli strumenti di Xcode**: `scripts/prepare_renderers.py`,
-  `build.sh` e `Tests/check.py` (`Rules.md` § '🧰 Build e prove').
+  `build.sh`, `Tests/check.py`, `Tests/samples.py` con `Tests/HeadlessCheck.swift` e
+  `Tests/service_check.sh` (`Rules.md` § '🧰 Build e prove').
 - **Le dipendenze sono i renderer**, con versione e SHA-256 in `scripts/prepare_renderers.py`
-  e il registro in `docs/Dependencies.json`, che il flusso `dependencies.yml` controlla ogni lunedì
-  (`Rules.md` § '🔗 Le dipendenze').
+  e il registro in `docs/Dependencies.json`, che il flusso `dependencies.yml` controlla ogni lunedì;
+  ognuno all'ultima versione, anche pre-release o beta, senza le build notturne (`Rules.md` § '🔗 Le
+  dipendenze').
+- **I renderer sono nell'app una volta sola**, nel servizio XPC dell'estensione delle miniature, che
+  mette in coda le richieste (`Rules.md` § '🧭 Che cos'è').
 - **Il martin pescatore non si tocca**: l'icona e le sue immagini sono fuori dalla licenza MIT del
   codice (`ARTWORK.md`), e si usano così come sono; i renderer tengono le licenze dei progetti
   originali (`THIRD_PARTY.md`) (`Rules.md` § '⚖️ Licenze e illustrazione').

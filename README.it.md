@@ -2,7 +2,7 @@
 
 # ArtCraft Quick Look
 
-Seleziona un progetto ArtCraft o un file SVG nel Finder e premi **Spazio** per vederne il contenuto. Seleziona più revisioni e scorrile con i tasti freccia. ArtCraft Quick Look aggiunge sia le miniature nelle cartelle sia le anteprime statiche più grandi.
+Seleziona un progetto ArtCraft, una sessione di SoundCraft o un file SVG nel Finder e premi **Spazio** per vederne il contenuto. Seleziona più revisioni e scorrile con i tasti freccia. ArtCraft Quick Look aggiunge sia le miniature nelle cartelle sia le anteprime statiche più grandi.
 
 **[Scarica per macOS](https://github.com/Roccobot/CraftLook/releases/latest)** · [English README](README.md)
 
@@ -26,21 +26,22 @@ Puoi provarlo con [River Study, un piccolo progetto VectorCraft](https://raw.git
 | TextureCraft | `.tcraft` | La miniatura salvata o una vista del progetto disegnata dal renderer. |
 | PhotoCraft | `.pcraft` | Il miglior composito o la miglior miniatura salvati, da un archivio o da un pacchetto di progetto. |
 | SolidCraft | `.sc`, `.solidcraft` | Una vista del progetto disegnata dal renderer, senza la griglia del piano e gli assi. |
-| FilmCraft | `.fcproj` | Il fotogramma della sequenza attiva sotto la testina di riproduzione salvata. |
+| FilmCraft | `.fcproj` | Il fotogramma della sequenza attiva sotto la testina di riproduzione salvata. Un rettangolo verde arrotondato prende il posto di ogni immagine che Quick Look non può leggere. |
 | MaterialCraft | `.mcraft` | Il materiale disegnato sulla scena 3D dell'app. |
 | EffectCraft | `.ecproj`, `.ecprojx` | La composizione attiva al suo istante corrente. |
+| SoundCraft | `.scraft` | La timeline: le tracce, le clip dove e quanto suonano, le note MIDI, i marker e la testina. |
 | Documento Photoshop | `.psd` | Il composito che macOS legge con ImageIO. Photoshop non serve. |
 | Immagine SVG | `.svg` | Il disegno reso da VectorCraft, testo compreso. |
 
-Le anteprime di FigCraft e DesignCraft arrivano a 2048 pixel sul lato più lungo. Le miniature del Finder usano un'immagine salvata, quando c'è. I renderer inclusi lavorano sul Mac, tramite un servizio in sandbox, su una copia temporanea del file richiesto. I progetti che usano file esterni al progetto possono apparire diversi: un fotogramma di FilmCraft che mostra media di altri file resta senza anteprima, perché il renderer non può leggerli. Il disegno ha un limite di 12 secondi e un limite di 256 MiB sul file.
+Le anteprime di FigCraft e DesignCraft arrivano a 2048 pixel sul lato più lungo. Le miniature del Finder usano un'immagine salvata, quando c'è. I renderer inclusi lavorano sul Mac, tramite un servizio in sandbox, su una copia temporanea del file richiesto. I progetti che usano file esterni al progetto possono apparire diversi: Quick Look non lascia che il renderer li legga, quindi in un fotogramma di FilmCraft ogni immagine di un altro file diventa un rettangolo verde arrotondato della sua misura, al suo posto. Il disegno ha un limite di 12 secondi e un limite di 256 MiB sul file.
 
-PdfCraft lavora sui normali file PDF, che macOS mostra da sé. Le sessioni di SoundCraft non contengono un'immagine e lo strumento a riga di comando di SoundCraft non ne disegna, quindi i file `.scraft` mantengono la loro icona.
+PdfCraft lavora sui normali file PDF, che macOS mostra da sé.
 
 macOS usa una sola estensione Quick Look per ogni tipo di file. Se anche un'altra app mostra i file SVG, come Looq o Gapplin, disattiva la sua estensione nelle Impostazioni di Sistema, in Generali, Elementi login ed estensioni, Quick Look, perché sia ArtCraft Quick Look a mostrarli.
 
 ## Build e controlli
 
-Serve un Mac con gli strumenti a riga di comando di Xcode e Python 3. Lo script di preparazione scarica le release universali delle CLI elencate in [THIRD_PARTY.md](THIRD_PARTY.md), con la versione fissata, ne controlla gli SHA-256 e ne conserva gli avvisi.
+Serve un Mac con gli strumenti a riga di comando di Xcode e Python 3. Lo script di preparazione scarica le release universali delle CLI elencate in [THIRD_PARTY.md](THIRD_PARTY.md), ognuna all'ultima versione, pre-release comprese, ne controlla gli SHA-256 e ne conserva gli avvisi.
 
 ```sh
 python3 scripts/prepare_renderers.py "$PWD/engines"
@@ -52,7 +53,7 @@ Il risultato è `build/ArtCraft Quick Look.app`. Per usare gli ZIP originali gi�
 Dopo la build, esegui i controlli della lettura dei documenti con questi comandi.
 
 ```sh
-xcrun swiftc Sources/Archive.swift Sources/DocumentImage.swift Tests/RenderCheck.swift -o build/rendercheck
+xcrun swiftc Sources/Archive.swift Sources/DocumentImage.swift Sources/Drawing.swift Sources/Timeline.swift Tests/RenderCheck.swift -o build/rendercheck
 python3 Tests/check.py build/rendercheck
 ```
 
@@ -60,8 +61,14 @@ I controlli dei renderer scrivono un piccolo progetto per ogni formato che solo 
 
 ```sh
 python3 Tests/samples.py "$PWD/engines" build/samples
-xcrun swiftc -parse-as-library Sources/Archive.swift Sources/DocumentImage.swift Sources/RenderXPC.swift Sources/HeadlessRenderer.swift Tests/HeadlessCheck.swift -o build/headlesscheck
+xcrun swiftc -parse-as-library Sources/Archive.swift Sources/DocumentImage.swift Sources/Drawing.swift Sources/Timeline.swift Sources/RenderXPC.swift Sources/HeadlessRenderer.swift Tests/HeadlessCheck.swift -o build/headlesscheck
 build/headlesscheck "build/ArtCraft Quick Look.app/Contents/PlugIns/Thumbnail.appex/Contents/XPCServices/CraftRender.xpc/Contents/Helpers" build/samples/* examples/river-study.vectorcraft
+```
+
+Il controllo del servizio manda gli stessi file al servizio dei renderer dell'app, nella sua sandbox, tutti insieme, e vuole un'immagine per ognuno.
+
+```sh
+Tests/service_check.sh "build/ArtCraft Quick Look.app" build/samples/* examples/river-study.vectorcraft
 ```
 
 ## Fonti dei formati
@@ -72,6 +79,7 @@ build/headlesscheck "build/ArtCraft Quick Look.app/Contents/PlugIns/Thumbnail.ap
 - [TextureCraft](https://github.com/storytold/texturecraft/blob/main/crates/formats/src/project_file/mod.rs)
 - [PhotoCraft](https://github.com/storytold/photocraft/blob/main/book/src/formats/pcraft.md)
 - [SolidCraft](https://github.com/tangency-labs/solidcraft), [FilmCraft](https://github.com/storytold/filmcraft), [MaterialCraft](https://github.com/storytold/materialcraft/blob/main/packaging/macos/Info.plist.in) ed [EffectCraft](https://github.com/storytold/effectcraft): il tipo che ogni app dichiara e l'immagine che disegna il suo strumento a riga di comando
+- [SoundCraft](https://github.com/storytold/soundcraft): il tipo che l'app dichiara e la sessione che salva il suo strumento a riga di comando
 - [Apple Quick Look UI](https://developer.apple.com/documentation/quicklookui/qlpreviewprovider) e [Quick Look Thumbnailing](https://developer.apple.com/documentation/quicklookthumbnailing/qlthumbnailprovider)
 
 ## Segnalazioni e riconoscimenti

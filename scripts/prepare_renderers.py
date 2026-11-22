@@ -9,14 +9,13 @@ import urllib.request
 from zipfile import ZipFile
 
 # Product: (version, SHA-256 of its macos-universal CLI ZIP, GitHub repository of the release).
+# Always the latest release, pre-releases included, nightly builds excluded (Rules.md).
 RENDERERS = {
     "figcraft": ("0.18.1", "87efbca334e0925fce328ede159faef2df781b2a167d573888044127bfd4b0de", "storytold/figcraft"),
     "designcraft": ("0.20.1", "a178783b31e1af48f7af2b516568ec85537a484dfbcc5057b0f03cadee90c0ab", "storytold/designcraft"),
     "vectorcraft": ("0.24.1", "7f0c8261e5c831d9681e48272f9ba73bf8702dbf6ceb84f98177c7c007faddf2", "storytold/vectorcraft"),
     "texturecraft": ("0.6.1", "80a65494a740d100797d54a55c43ff32ee40ee19678eebae8200f52cbba33bdc", "storytold/texturecraft"),
-    # 0.46.0 is a pre-release: 0.45.0, the latest stable one, reads designs up to format 63, and
-    # SolidCraft 0.46 saves format 64.
-    "solidcraft": ("0.46.0", "ca187eadc1da31ba0729c500e8fa4984ddcc7373571b55b47d6b3adf21e034ab", "tangency-labs/solidcraft"),
+    "solidcraft": ("0.46.2", "c46a6a5ac3068c9de75195b2235d8be6d90024d3426de5fc0f3967065477445b", "tangency-labs/solidcraft"),
     "filmcraft": ("0.20.1", "1651d9defb54f853cbd69016428bb9f72a7bf26d56e4755b8e2a79535fd0ac82", "storytold/filmcraft"),
     "materialcraft": ("0.4.1", "bcf0e87191dfca39ba14c8110823b21ed5bc5078ad7ae8e4cff380d83fec6edc", "storytold/materialcraft"),
     "effectcraft": ("0.24.1", "2781eda194372ad47f4c0c7df8b1d38501a3e90bb499282f57e9598a85958673", "storytold/effectcraft"),

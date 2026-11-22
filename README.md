@@ -2,7 +2,7 @@
 
 # ArtCraft Quick Look
 
-Select an ArtCraft project or an SVG file in Finder and press **Space** to see what's inside. Select several revisions and use the arrow keys to flip through them. ArtCraft Quick Look adds both the thumbnails in your folders and the larger, static previews.
+Select an ArtCraft project, a SoundCraft session or an SVG file in Finder and press **Space** to see what's inside. Select several revisions and use the arrow keys to flip through them. ArtCraft Quick Look adds both the thumbnails in your folders and the larger, static previews.
 
 **[Download for macOS](https://github.com/Roccobot/CraftLook/releases/latest)** · [Guida in italiano](README.it.md)
 
@@ -26,21 +26,22 @@ You can try it with [River Study, a small VectorCraft project](https://raw.githu
 | TextureCraft | `.tcraft` | The saved thumbnail or a rendered view of the project. |
 | PhotoCraft | `.pcraft` | The best available saved composite or thumbnail, from a project archive or package. |
 | SolidCraft | `.sc`, `.solidcraft` | A rendered view of the design, without the ground grid and the axes. |
-| FilmCraft | `.fcproj` | The frame of the active sequence at the saved playhead. |
+| FilmCraft | `.fcproj` | The frame of the active sequence at the saved playhead. A green rounded rectangle takes the place of each picture Quick Look can't read. |
 | MaterialCraft | `.mcraft` | The material rendered on the app's 3D scene. |
 | EffectCraft | `.ecproj`, `.ecprojx` | The active composition at its current time. |
+| SoundCraft | `.scraft` | The timeline: tracks, clips where and as long as they play, MIDI notes, markers and playhead. |
 | Photoshop document | `.psd` | The composite that macOS ImageIO can read. Photoshop is optional. |
 | SVG image | `.svg` | The drawing rendered by VectorCraft, text included. |
 
-FigCraft and DesignCraft previews can reach 2048 pixels on the longest side. Finder thumbnails prefer a saved image when available. The bundled renderers run locally, through a sandboxed service, on a temporary copy of the requested file. Projects that rely on files outside the project may look different: a FilmCraft frame that shows media from other files has no preview, because the renderer can't read them. Rendering has a 12-second time limit and a 256 MiB input limit.
+FigCraft and DesignCraft previews can reach 2048 pixels on the longest side. Finder thumbnails prefer a saved image when available. The bundled renderers run locally, through a sandboxed service, on a temporary copy of the requested file. Projects that rely on files outside the project may look different: Quick Look doesn't let the renderer read them, so in a FilmCraft frame each picture from another file becomes a green rounded rectangle of its size, in its place. Rendering has a 12-second time limit and a 256 MiB input limit.
 
-PdfCraft works on standard PDF files, which macOS previews by itself. SoundCraft sessions don't contain an image, and the SoundCraft command-line tool doesn't draw one, so `.scraft` files keep their icon.
+PdfCraft works on standard PDF files, which macOS previews by itself.
 
 macOS uses one Quick Look extension for each file type. If another app also previews SVG files, such as Looq or Gapplin, turn its extension off in System Settings, under General, Login Items & Extensions, Quick Look, so that ArtCraft Quick Look shows them.
 
 ## Build from source
 
-Use a Mac with Xcode Command Line Tools and Python 3. The preparation script downloads the pinned universal CLI releases listed in [THIRD_PARTY.md](THIRD_PARTY.md), checks their SHA-256 digests and preserves their notices.
+Use a Mac with Xcode Command Line Tools and Python 3. The preparation script downloads the universal CLI releases listed in [THIRD_PARTY.md](THIRD_PARTY.md), each at its latest version, pre-releases included, checks their SHA-256 digests and preserves their notices.
 
 ```sh
 python3 scripts/prepare_renderers.py "$PWD/engines"
@@ -52,7 +53,7 @@ The result is `build/ArtCraft Quick Look.app`. To use previously downloaded upst
 After building, run the document-reader checks with these commands.
 
 ```sh
-xcrun swiftc Sources/Archive.swift Sources/DocumentImage.swift Tests/RenderCheck.swift -o build/rendercheck
+xcrun swiftc Sources/Archive.swift Sources/DocumentImage.swift Sources/Drawing.swift Sources/Timeline.swift Tests/RenderCheck.swift -o build/rendercheck
 python3 Tests/check.py build/rendercheck
 ```
 
@@ -60,8 +61,14 @@ The renderer checks write a small project for each format that only a renderer c
 
 ```sh
 python3 Tests/samples.py "$PWD/engines" build/samples
-xcrun swiftc -parse-as-library Sources/Archive.swift Sources/DocumentImage.swift Sources/RenderXPC.swift Sources/HeadlessRenderer.swift Tests/HeadlessCheck.swift -o build/headlesscheck
+xcrun swiftc -parse-as-library Sources/Archive.swift Sources/DocumentImage.swift Sources/Drawing.swift Sources/Timeline.swift Sources/RenderXPC.swift Sources/HeadlessRenderer.swift Tests/HeadlessCheck.swift -o build/headlesscheck
 build/headlesscheck "build/ArtCraft Quick Look.app/Contents/PlugIns/Thumbnail.appex/Contents/XPCServices/CraftRender.xpc/Contents/Helpers" build/samples/* examples/river-study.vectorcraft
+```
+
+The service check sends the same files to the app's renderer service, in its sandbox, all at once, and expects a picture for each.
+
+```sh
+Tests/service_check.sh "build/ArtCraft Quick Look.app" build/samples/* examples/river-study.vectorcraft
 ```
 
 ## Format sources
@@ -72,6 +79,7 @@ build/headlesscheck "build/ArtCraft Quick Look.app/Contents/PlugIns/Thumbnail.ap
 - [TextureCraft](https://github.com/storytold/texturecraft/blob/main/crates/formats/src/project_file/mod.rs)
 - [PhotoCraft](https://github.com/storytold/photocraft/blob/main/book/src/formats/pcraft.md)
 - [SolidCraft](https://github.com/tangency-labs/solidcraft), [FilmCraft](https://github.com/storytold/filmcraft), [MaterialCraft](https://github.com/storytold/materialcraft/blob/main/packaging/macos/Info.plist.in) and [EffectCraft](https://github.com/storytold/effectcraft): the type each app declares, and the image its command-line tool renders
+- [SoundCraft](https://github.com/storytold/soundcraft): the type the app declares, and the session that its command-line tool saves
 - [Apple Quick Look UI](https://developer.apple.com/documentation/quicklookui/qlpreviewprovider) and [Quick Look Thumbnailing](https://developer.apple.com/documentation/quicklookthumbnailing/qlthumbnailprovider)
 
 ## Feedback and credits
