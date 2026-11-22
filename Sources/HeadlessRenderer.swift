@@ -4,7 +4,7 @@ import Darwin
 import OSLog
 
 enum HeadlessRenderer {
-    private static let log = Logger(subsystem: "org.artcraftquicklook.local", category: "render")
+    private static let log = Logger(subsystem: "com.roccobot.craftlook", category: "render")
 
     static func render(_ file: URL, maxSide: Int, tools: URL, deadline: DispatchTime = .now() + 12) -> CGImage? {
         let ext = file.pathExtension.lowercased()

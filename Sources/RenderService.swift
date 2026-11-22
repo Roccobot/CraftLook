@@ -4,9 +4,9 @@ import OSLog
 private final class Renderer: NSObject, RenderServiceProtocol, NSXPCListenerDelegate {
     // Finder asks for many thumbnails at once: requests wait for one of two renderer slots
     // instead of being turned away, until the time a renderer would have had runs out.
-    private let jobs = DispatchQueue(label: "org.artcraftquicklook.local.render", attributes: .concurrent)
+    private let jobs = DispatchQueue(label: "com.roccobot.craftlook.render", attributes: .concurrent)
     private let slots = DispatchSemaphore(value: 2)
-    private let log = Logger(subsystem: "org.artcraftquicklook.local", category: "service")
+    private let log = Logger(subsystem: "com.roccobot.craftlook", category: "service")
 
     func listener(_ listener: NSXPCListener, shouldAcceptNewConnection connection: NSXPCConnection) -> Bool {
         guard connection.effectiveUserIdentifier == geteuid() else { return false }

@@ -1,6 +1,6 @@
 # Upstream renderers
 
-ArtCraft Quick Look packages the universal macOS CLI releases listed below. Each renderer's complete upstream documentation and notices ship in `ArtCraft Quick Look.app/Contents/Resources/Notices/<name>/`. This includes font licenses and VectorCraft's nested PDF backend licenses. VectorCraft also renders SVG files. Each renderer is the latest release, pre-releases included: SolidCraft 0.46.2 is one.
+CraftLook packages the universal macOS CLI releases listed below. Each renderer's complete upstream documentation and notices ship in `CraftLook.app/Contents/Resources/Notices/<name>/`. This includes font licenses and VectorCraft's nested PDF backend licenses. VectorCraft also renders SVG files. Each renderer is the latest release, pre-releases included: SolidCraft 0.46.2 is one.
 
 | Renderer | Upstream release | CLI archive SHA-256 |
 | --- | --- | --- |

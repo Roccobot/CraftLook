@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="docs/images/kingfisher.png" width="128" alt="The ArtCraft Quick Look icon, a kingfisher holding a fish">
+  <img src="docs/images/kingfisher.png" width="128" alt="The CraftLook icon, a kingfisher holding a fish">
 </p>
 
-<h1 align="center">ArtCraft Quick Look</h1>
+<h1 align="center">CraftLook</h1>
 
 <p align="center">Finder thumbnails and Space-bar previews for ArtCraft projects, SoundCraft sessions and SVG files.</p>
 
@@ -20,7 +20,7 @@ Select an ArtCraft project in Finder and press **Space** to see what's inside, w
 
 ![Previews of a VectorCraft print, a FilmCraft sunset, a SolidCraft box, a MaterialCraft cube, a SoundCraft timeline and an SVG label](docs/images/formats.png)
 
-<p align="center"><sub>Previews drawn by ArtCraft Quick Look from the project's sample files.</sub></p>
+<p align="center"><sub>Previews drawn by CraftLook from the project's sample files.</sub></p>
 
 ## Supported formats
 
@@ -44,22 +44,22 @@ PdfCraft works on standard PDF files, which macOS previews by itself.
 ## Install
 
 1. Download the ZIP from the [latest release](https://github.com/Roccobot/CraftLook/releases/latest).
-2. Unzip it, move **ArtCraft Quick Look** into **Applications** and open it once.
+2. Unzip it, move **CraftLook** into **Applications** and open it once.
 3. In Finder, select a supported file and press **Space**.
 
-To upgrade, quit the app, replace it in **Applications** with the new one and open it once. To try it right away, download [River Study, a small VectorCraft project](https://raw.githubusercontent.com/Roccobot/CraftLook/main/examples/river-study.vectorcraft) and keep its `.vectorcraft` extension.
+To upgrade, quit the app, replace it in **Applications** with the new one and open it once. CraftLook was called ArtCraft Quick Look up to version 0.2.5: if you have that app, delete it before installing CraftLook, so that the two don't handle the same files. To try it right away, download [River Study, a small VectorCraft project](https://raw.githubusercontent.com/Roccobot/CraftLook/main/examples/river-study.vectorcraft) and keep its `.vectorcraft` extension.
 
 ### First launch
 
 The app is ad hoc signed and not yet notarized by Apple, so macOS may refuse to open it the first time. If it does, go to **System Settings**, **Privacy & Security**, and click **Open Anyway**, as [Apple's guide](https://support.apple.com/en-us/102445) explains. You only need to do this once.
 
-If Finder still shows a generic icon, check that the ArtCraft Quick Look extensions are on in **System Settings**, under **General**, **Login Items & Extensions**, **Quick Look**, and that **Show icon preview** is on in Finder's View Options.
+If Finder still shows a generic icon, check that the CraftLook extensions are on in **System Settings**, under **General**, **Login Items & Extensions**, **Quick Look**, and that **Show icon preview** is on in Finder's View Options.
 
 ### Requirements
 
 - macOS 13 or later, on an Intel or Apple silicon Mac.
 - About 1.6 GB of disk space, renderers included.
-- No ArtCraft app has to be installed: the renderers ship inside ArtCraft Quick Look. Photoshop isn't needed for `.psd` files either.
+- No ArtCraft app has to be installed: the renderers ship inside CraftLook. Photoshop isn't needed for `.psd` files either.
 
 ## How it works
 
@@ -67,7 +67,7 @@ Two Quick Look extensions give Finder the thumbnails and the larger previews. Wh
 
 Quick Look doesn't let the renderer read files outside the project, so projects that use them may look different: in a FilmCraft frame, each picture from another file becomes a green rounded rectangle of its size, in its place.
 
-macOS uses one Quick Look extension for each file type. If another app also previews SVG files, such as Looq or Gapplin, turn its extension off in the same Quick Look settings so that ArtCraft Quick Look shows them.
+macOS uses one Quick Look extension for each file type. If another app also previews SVG files, such as Looq or Gapplin, turn its extension off in the same Quick Look settings so that CraftLook shows them.
 
 ## Build from source
 
@@ -78,7 +78,7 @@ python3 scripts/prepare_renderers.py "$PWD/engines"
 ./build.sh "$PWD/build" "$PWD/engines"
 ```
 
-The result is `build/ArtCraft Quick Look.app`. To use previously downloaded upstream ZIPs, pass `--archives /path/to/archives` to the Python script. For a smaller build that reads only embedded previews, run `./build.sh "$PWD/build-embedded"` in a fresh build directory.
+The result is `build/CraftLook.app`. To use previously downloaded upstream ZIPs, pass `--archives /path/to/archives` to the Python script. For a smaller build that reads only embedded previews, run `./build.sh "$PWD/build-embedded"` in a fresh build directory.
 
 After building, run the document-reader checks with these commands.
 
@@ -92,13 +92,13 @@ The renderer checks write a small project for each format that only a renderer c
 ```sh
 python3 Tests/samples.py "$PWD/engines" build/samples
 xcrun swiftc -parse-as-library Sources/Archive.swift Sources/DocumentImage.swift Sources/Drawing.swift Sources/Timeline.swift Sources/RenderXPC.swift Sources/HeadlessRenderer.swift Tests/HeadlessCheck.swift -o build/headlesscheck
-build/headlesscheck "build/ArtCraft Quick Look.app/Contents/PlugIns/Thumbnail.appex/Contents/XPCServices/CraftRender.xpc/Contents/Helpers" build/samples/* examples/river-study.vectorcraft
+build/headlesscheck "build/CraftLook.app/Contents/PlugIns/Thumbnail.appex/Contents/XPCServices/CraftRender.xpc/Contents/Helpers" build/samples/* examples/river-study.vectorcraft
 ```
 
 The service check sends the same files to the app's renderer service, in its sandbox, all at once, and expects a picture for each.
 
 ```sh
-Tests/service_check.sh "build/ArtCraft Quick Look.app" build/samples/* examples/river-study.vectorcraft
+Tests/service_check.sh "build/CraftLook.app" build/samples/* examples/river-study.vectorcraft
 ```
 
 ## Format sources
@@ -118,7 +118,7 @@ For a blank or incorrect preview, include the extension, the macOS version, the 
 
 ## Credits and third-party software
 
-ArtCraft Quick Look is an independent community project. The renderers come from the ArtCraft team, from Tangency Labs for SolidCraft, and from their contributors, and keep their original licenses and notices. [Upstream releases and credits](THIRD_PARTY.md)
+CraftLook is an independent community project. The renderers come from the ArtCraft team, from Tangency Labs for SolidCraft, and from their contributors, and keep their original licenses and notices. [Upstream releases and credits](THIRD_PARTY.md)
 
 ## License
 

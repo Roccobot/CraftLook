@@ -275,7 +275,8 @@ Un file più specifico vince **dove parla**, e il suo silenzio non è una deroga
 
 ## 🧭 Il nucleo di `CraftLook`
 
-- **Che cos'è**: ArtCraft Quick Look, l'app per macOS 13 o successivi, su Mac Intel e Apple
+- **Che cos'è**: CraftLook (`com.roccobot.craftlook`; fino alla 0.2.5 'ArtCraft Quick Look', `Rules.md`
+  § '🌿 Ramo e versione'), l'app per macOS 13 o successivi, su Mac Intel e Apple
   silicon, che mostra nel Finder miniature e anteprime statiche dei progetti della suite ArtCraft,
   dei `.psd` e degli `.svg` (i formati sono nella tabella del `README.md`), con due estensioni Quick
   Look e un servizio XPC in sandbox che avvia i renderer (`Rules.md` § '🧭 Che cos'è').

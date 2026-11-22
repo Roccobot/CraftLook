@@ -1,6 +1,6 @@
-# Rules.md: regole del progetto ArtCraft Quick Look (repo `Roccobot/CraftLook`)
+# Rules.md: regole del progetto CraftLook (repo `Roccobot/CraftLook`)
 
-> **Cos'è questo file.** Il testo completo delle regole di **ArtCraft Quick Look**. Vale per
+> **Cos'è questo file.** Il testo completo delle regole di **CraftLook**. Vale per
 > **tutti gli agenti**: il nucleo, cioè ogni regola in una riga, vive in `AGENTS.md`, e questo file
 > ne dà il perché. Nessun agente lo carica da sé: si legge per intero prima di lavorare su una cosa
 > di cui parla. Le regole trasversali vivono nell'hub `Roccobot/roccobot.github.io` (`AGENTS.md` e
@@ -35,9 +35,13 @@
 ## 🌿 Ramo e versione
 
 - **Ramo principale `main`.**
-- **Il repo si chiamava `artcraft-quick-look` fino al 2026-11-22**, quando l'utente l'ha rinominato
-  `CraftLook`; l'app resta 'ArtCraft Quick Look'. GitHub reindirizza i link e i cloni col nome
-  vecchio, e l'archivio della release 0.2.5 (`artcraft-quick-look-0.2.5-macos.zip`) lo conserva.
+- **L'app si chiama CraftLook dalla 0.3.0** (scelta dell'utente del 2026-11-22): `CraftLook.app`,
+  identificativi `com.roccobot.craftlook`, `.preview`, `.thumbnail` e `.thumbnail.render`, archivi
+  `craftlook-<versione>-macos.zip`, `-source.zip` e `-SHA256.txt`. Fino alla 0.2.5 era 'ArtCraft
+  Quick Look', con gli identificativi `org.artcraftquicklook.local` e il repo `artcraft-quick-look`,
+  che GitHub reindirizza a `CraftLook`; l'archivio della release 0.2.5 tiene il nome vecchio. Con
+  identificativi diversi le due app non si riconoscono: prima di installare CraftLook si cancella
+  'ArtCraft Quick Look', perché le due non mostrino gli stessi file.
 - **Versione SemVer**, con la fonte unica in `configure.py`: `CFBundleShortVersionString` è la
   versione mostrata, `CFBundleVersion` il numero di build, che sale di uno a ogni versione
   pubblicata, non a ogni build provata. Al 2026-11-22 l'ultima pubblicata è `0.2.5` (`9`), e
@@ -78,7 +82,7 @@
 ## ⚖️ Licenze e illustrazione
 
 - **Il codice, gli script e le prove sono MIT** (`LICENSE`).
-- **Il martin pescatore è fuori da quella licenza** (`ARTWORK.md`): `Resources/ArtCraftQuickLook.icns`
+- **Il martin pescatore è fuori da quella licenza** (`ARTWORK.md`): `Resources/CraftLook.icns`
   e `docs/images/kingfisher.png` si usano così come sono, come ogni icona e immagine dell'utente
   (`rules/Roccobot.md` § '🧹 Bonifica e ottimizzazione degli asset').
 - **I renderer tengono le licenze e gli avvisi dei progetti originali** (`THIRD_PARTY.md`), che

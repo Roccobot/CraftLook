@@ -19,7 +19,7 @@ body:
   - type: input
     id: environment
     attributes:
-      label: macOS and ArtCraft Quick Look versions
+      label: macOS and CraftLook versions
   - type: textarea
     id: sample
     attributes:

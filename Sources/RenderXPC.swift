@@ -51,7 +51,7 @@ enum RenderXPC {
         connection.resume()
         defer { connection.invalidate() }
 
-        let log = Logger(subsystem: "org.artcraftquicklook.local", category: "xpc")
+        let log = Logger(subsystem: "com.roccobot.craftlook", category: "xpc")
         guard let remote = connection.remoteObjectProxyWithErrorHandler({ error in
             log.error("Renderer connection failed: \(String(describing: error), privacy: .public)")
             result.finish(nil)

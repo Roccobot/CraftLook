@@ -6,11 +6,11 @@ engines="${2:-}"
 if [[ -n "$engines" ]]; then engines="$(cd "$engines" && pwd)"; fi
 mkdir -p "$build"
 build="$(cd "$build" && pwd)"
-app="$build/ArtCraft Quick Look.app"
+app="$build/CraftLook.app"
 rm -rf "$app"
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources" "$build/cache"
 python3 configure.py "$app"
-cp "Resources/ArtCraftQuickLook.icns" "$app/Contents/Resources/ArtCraftQuickLook.icns"
+cp "Resources/CraftLook.icns" "$app/Contents/Resources/CraftLook.icns"
 cp LICENSE ARTWORK.md "$app/Contents/Resources/"
 common=(Sources/Archive.swift Sources/DocumentImage.swift Sources/Drawing.swift Sources/Timeline.swift Sources/RenderXPC.swift)
 for arch in arm64 x86_64; do
@@ -23,7 +23,7 @@ for arch in arm64 x86_64; do
       -Xlinker -e -Xlinker _NSExtensionMain "${common[@]}" "Sources/QuickLook$name.swift" -o "$build/$name-$arch"
   done
 done
-xcrun lipo -create "$build/host-arm64" "$build/host-x86_64" -output "$app/Contents/MacOS/ArtCraftQuickLook"
+xcrun lipo -create "$build/host-arm64" "$build/host-x86_64" -output "$app/Contents/MacOS/CraftLook"
 if [[ -n "$engines" ]]; then
   mkdir -p "$app/Contents/Resources/Notices" "$build/engine-binaries"
   for name in $(python3 scripts/prepare_renderers.py --list); do

@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 
 app = Path(sys.argv[1])
-bundle = 'org.artcraftquicklook.local'
+bundle = 'com.roccobot.craftlook'
 # The project types: UTI, extensions and conformance. SolidCraft, FilmCraft, MaterialCraft,
 # EffectCraft and SoundCraft repeat the declaration their own app exports.
 formats = {
@@ -26,13 +26,13 @@ def write(path, data):
 
 def info(name, kind, identifier):
     return dict(CFBundleExecutable=name, CFBundleIdentifier=identifier, CFBundleName=name,
-                CFBundleDisplayName='ArtCraft Quick Look', CFBundlePackageType=kind,
+                CFBundleDisplayName='CraftLook', CFBundlePackageType=kind,
                 CFBundleVersion='10', CFBundleShortVersionString='0.3.0',
                 CFBundleInfoDictionaryVersion='6.0', LSMinimumSystemVersion='13.0',
                 CFBundleDevelopmentRegion='it', CFBundleSupportedPlatforms=['MacOSX'])
 
-host = info('ArtCraftQuickLook', 'APPL', bundle)
-host['CFBundleIconFile'] = 'ArtCraftQuickLook.icns'
+host = info('CraftLook', 'APPL', bundle)
+host['CFBundleIconFile'] = 'CraftLook.icns'
 host['UTImportedTypeDeclarations'] = [
     dict(UTTypeIdentifier=uti, UTTypeDescription=f'{extensions[0]} document',
          UTTypeTagSpecification={'public.filename-extension': extensions}, UTTypeConformsTo=conforms)
