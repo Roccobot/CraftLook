@@ -26,31 +26,40 @@ if [[ -n "$engines" && -d "$engines/sparkle/Sparkle.framework" ]]; then
   updater=(-F "$engines/sparkle" -framework Sparkle -Xlinker -rpath -Xlinker @executable_path/../Frameworks)
 fi
 common=(Sources/Archive.swift Sources/DocumentImage.swift Sources/Drawing.swift Sources/Timeline.swift Sources/RenderXPC.swift Sources/SVGResource.swift)
-for arch in arm64 x86_64; do
-  flags=(-target "$arch-apple-macos13.0" -module-cache-path "$build/cache" -O)
-  xcrun swiftc "${flags[@]}" -parse-as-library ${updater[@]+"${updater[@]}"} Sources/Host.swift Sources/Intro.swift \
-    -o "$build/host-$arch"
-  xcrun swiftc "${flags[@]}" "${common[@]}" Sources/HeadlessRenderer.swift Sources/RenderService.swift \
-    -o "$build/CraftRender-$arch"
-  for name in Preview Thumbnail; do
-    xcrun swiftc "${flags[@]}" -application-extension -module-name "$name" \
-      -Xlinker -e -Xlinker _NSExtensionMain "${common[@]}" "Sources/QuickLook$name.swift" -o "$build/$name-$arch"
-  done
+# Apple silicon only: one slice, no universal lipo. Intel was dropped in 0.5.0.
+thin_arm64() {
+  local f="$1" archs
+  archs="$(xcrun lipo -archs "$f" 2>/dev/null)" || return 0
+  if [[ "$archs" == *x86_64* && "$archs" == *arm64* ]]; then
+    xcrun lipo -thin arm64 "$f" -output "$f.arm64"
+    mv "$f.arm64" "$f"
+  elif [[ "$archs" == *x86_64* ]]; then
+    echo "No arm64 slice in $f ($archs)" >&2
+    exit 1
+  fi
+}
+flags=(-target "arm64-apple-macos13.0" -module-cache-path "$build/cache" -O)
+xcrun swiftc "${flags[@]}" -parse-as-library ${updater[@]+"${updater[@]}"} Sources/Host.swift Sources/Intro.swift \
+  -o "$app/Contents/MacOS/CraftLook"
+xcrun swiftc "${flags[@]}" "${common[@]}" Sources/HeadlessRenderer.swift Sources/RenderService.swift \
+  -o "$build/CraftRender"
+for name in Preview Thumbnail; do
+  xcrun swiftc "${flags[@]}" -application-extension -module-name "$name" \
+    -Xlinker -e -Xlinker _NSExtensionMain "${common[@]}" "Sources/QuickLook$name.swift" -o "$build/$name"
 done
-xcrun lipo -create "$build/host-arm64" "$build/host-x86_64" -output "$app/Contents/MacOS/CraftLook"
 if [[ -n "$engines" ]]; then
   mkdir -p "$app/Contents/Resources/Notices" "$build/engine-binaries"
   for name in $(python3 scripts/prepare_renderers.py --list); do
     source="$engines/$name"
     target="$build/engine-binaries/$name-cli"
     cp "$source/$name-cli" "$target"
+    thin_arm64 "$target"
     ditto "$source/Notices" "$app/Contents/Resources/Notices/$name"
     # Each renderer keeps the entitlements of its upstream signature: only SolidCraft has one,
     # allow-unsigned-executable-memory, for the WebAssembly code its wasmtime compiles.
     "${sign[@]}" --preserve-metadata=entitlements "$target"
   done
 fi
-xcrun lipo -create "$build/CraftRender-arm64" "$build/CraftRender-x86_64" -output "$build/CraftRender"
 if [[ -n "$engines" ]]; then
   mkdir -p "$app/Contents/Helpers"
   mv "$build"/engine-binaries/*-cli "$app/Contents/Helpers/"
@@ -58,7 +67,7 @@ fi
 for name in Preview Thumbnail; do
   ext="$app/Contents/PlugIns/$name.appex"
   mkdir -p "$ext/Contents/MacOS"
-  xcrun lipo -create "$build/$name-arm64" "$build/$name-x86_64" -output "$ext/Contents/MacOS/$name"
+  cp "$build/$name" "$ext/Contents/MacOS/$name"
   # The same thin service in each extension. The CLIs live once in Contents/Helpers; a hard link
   # in the service lets the sandbox run them without a second copy on disk.
   service="$ext/Contents/XPCServices/CraftRender.xpc"
@@ -79,11 +88,21 @@ if (( ${#updater[@]} )); then
   mkdir -p "$app/Contents/Frameworks" "$app/Contents/Resources/Notices/sparkle"
   ditto "$engines/sparkle/Sparkle.framework" "$framework"
   rm -rf "$framework/XPCServices" "$framework/Versions/B/XPCServices"
+  # The official Sparkle archive is universal; keep only arm64 in the app.
+  while IFS= read -r -d '' f; do thin_arm64 "$f"; done < <(find "$framework" -type f -print0)
   cp "$engines/sparkle/LICENSE" "$app/Contents/Resources/Notices/sparkle/"
   "${sign[@]}" "$framework/Versions/B/Autoupdate"
   "${sign[@]}" "$framework/Versions/B/Updater.app"
   "${sign[@]}" "$framework"
 fi
 "${sign[@]}" "$app"
+# Nothing x86_64 may remain in a 0.5.0 build.
+while IFS= read -r -d '' f; do
+  archs="$(xcrun lipo -archs "$f" 2>/dev/null)" || continue
+  if [[ "$archs" == *x86_64* ]]; then
+    echo "x86_64 remains in $f ($archs)" >&2
+    exit 1
+  fi
+done < <(find "$app" -type f -print0)
 codesign --verify --deep --strict "$app"
 echo "$app"

@@ -1,6 +1,6 @@
 # Upstream renderers
 
-CraftLook packages the universal macOS CLI releases listed below. Each renderer's complete upstream documentation and notices ship in `CraftLook.app/Contents/Resources/Notices/<name>/`. This includes font licenses and VectorCraft's nested PDF backend licenses. VectorCraft also renders SVG files. Each renderer is the latest release, pre-releases included: SolidCraft 0.46.2 is one.
+CraftLook packages the official macOS CLI releases listed below. Upstream ships them as universal ZIPs; CraftLook keeps only the arm64 slice. Each renderer's complete upstream documentation and notices ship in `CraftLook.app/Contents/Resources/Notices/<name>/`. This includes font licenses and VectorCraft's nested PDF backend licenses. VectorCraft also renders SVG files. Each renderer is the latest release, pre-releases included: SolidCraft 0.46.2 is one.
 
 | Renderer | Upstream release | CLI archive SHA-256 |
 | --- | --- | --- |
@@ -17,7 +17,7 @@ SolidCraft comes from Tangency Labs, the other renderers from the ArtCraft team.
 
 ## Sparkle
 
-CraftLook updates itself with [Sparkle 2.11.0-beta.1](https://github.com/sparkle-project/Sparkle/releases/tag/2.11.0-beta.1) (release archive SHA-256 `896daf5116e4edb12d00cc6f87ce1ca90fff1e106c1cbb07988bcdbf3ce38c4c`), the universal `Sparkle.framework` in `CraftLook.app/Contents/Frameworks/`, without its XPC services, which only sandboxed apps use. Sparkle is MIT-licensed, with the notices of the components it includes; its license ships in `CraftLook.app/Contents/Resources/Notices/sparkle/LICENSE`. The build signs the framework and its helpers, `Autoupdate` and `Updater.app`, with the hardened runtime.
+CraftLook updates itself with [Sparkle 2.11.0-beta.1](https://github.com/sparkle-project/Sparkle/releases/tag/2.11.0-beta.1) (release archive SHA-256 `896daf5116e4edb12d00cc6f87ce1ca90fff1e106c1cbb07988bcdbf3ce38c4c`), the `Sparkle.framework` in `CraftLook.app/Contents/Frameworks/` (the official archive is universal; only the arm64 slice is kept), without its XPC services, which only sandboxed apps use. Sparkle is MIT-licensed, with the notices of the components it includes; its license ships in `CraftLook.app/Contents/Resources/Notices/sparkle/LICENSE`. The build signs the framework and its helpers, `Autoupdate` and `Updater.app`, with the hardened runtime.
 
 ## Marks in the app window
 

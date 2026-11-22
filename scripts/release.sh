@@ -45,19 +45,21 @@ else
   echo "CRAFTLOOK_SIGN_ID is not set: the release is signed ad hoc and not notarized" >&2
 fi
 cd "$out"
-rm -f "$name-macos.zip" "$name-source.zip" appcast.xml
-# The download and Sparkle's update archive are the same ZIP.
-ditto -c -k --sequesterRsrc --keepParent "$(basename "$app")" "$name-macos.zip"
+rm -f "$name-macos.zip" "$name-macos.tar.xz" "$name-source.zip" appcast.xml
+# PKZip cannot store hard links, so a zip would triplicate the renderers (~2.3 GB).
+# A tar.xz (supported by Sparkle 2) keeps one copy on disk (~810 MB).
+tar --no-xattrs -C "$(dirname "$app")" -cJf "$name-macos.tar.xz" "$(basename "$app")"
 git -C "$repo" archive --format=zip --prefix="$name/" -o "$out/$name-source.zip" HEAD
-signed="$("$tools/sign_update" --account "$account" "$name-macos.zip")"
+signed="$("$tools/sign_update" --account "$account" "$name-macos.tar.xz")"
 signature="$(sed -n 's/.*sparkle:edSignature="\([^"]*\)".*/\1/p' <<<"$signed")"
 length="$(sed -n 's/.*length="\([0-9]*\)".*/\1/p' <<<"$signed")"
-[[ -n "$signature" && "$length" == "$(stat -f %z "$name-macos.zip")" ]] || { echo "Unexpected sign_update output: $signed" >&2; exit 1; }
-"$tools/sign_update" --account "$account" --verify "$name-macos.zip" "$signature"
+[[ -n "$signature" && "$length" == "$(stat -f %z "$name-macos.tar.xz")" ]] || { echo "Unexpected sign_update output: $signed" >&2; exit 1; }
+"$tools/sign_update" --account "$account" --verify "$name-macos.tar.xz" "$signature"
 releases="https://github.com/Roccobot/CraftLook/releases"
 python3 "$repo/scripts/appcast.py" --out appcast.xml --version "$version" --build "$build" \
-  --url "$releases/download/v$version/$name-macos.zip" --length "$length" --signature "$signature" \
-  --notes "$releases/tag/v$version" --min-system "$(plist LSMinimumSystemVersion)" --previous "$feed"
-shasum -a 256 "$name-macos.zip" "$name-source.zip" > "$name-SHA256.txt"
+  --url "$releases/download/v$version/$name-macos.tar.xz" --length "$length" --signature "$signature" \
+  --notes "$releases/tag/v$version" --min-system "$(plist LSMinimumSystemVersion)" \
+  --hardware-requirements arm64 --previous "$feed"
+shasum -a 256 "$name-macos.tar.xz" "$name-source.zip" > "$name-SHA256.txt"
 cat "$name-SHA256.txt"
-echo "Upload to the release v$version: $name-macos.zip, $name-source.zip, $name-SHA256.txt and appcast.xml"
+echo "Upload to the release v$version: $name-macos.tar.xz, $name-source.zip, $name-SHA256.txt and appcast.xml"

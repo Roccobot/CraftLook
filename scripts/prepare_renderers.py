@@ -9,7 +9,8 @@ import tempfile
 import urllib.request
 from zipfile import ZipFile
 
-# Product: (version, SHA-256 of its macos-universal CLI ZIP, GitHub repository of the release).
+# Product: (version, SHA-256 of its official macos-universal CLI ZIP, GitHub repository).
+# The ZIP is still the upstream universal archive; after the checksum, only the arm64 slice is kept.
 # Always the latest release, pre-releases included, nightly builds excluded (Rules.md).
 RENDERERS = {
     "figcraft": ("0.18.1", "87efbca334e0925fce328ede159faef2df781b2a167d573888044127bfd4b0de", "storytold/figcraft"),
@@ -32,6 +33,28 @@ def checksum(path):
         for chunk in iter(lambda: source.read(1024 * 1024), b""):
             result.update(chunk)
     return result.hexdigest()
+
+
+
+def thin_to_arm64(path):
+    """Keep only the arm64 slice of a Mach-O, in place. Non-Mach-O files are left alone."""
+    try:
+        archs = subprocess.check_output(["lipo", "-archs", path], stderr=subprocess.DEVNULL, text=True).split()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return
+    if "arm64" not in archs and "arm64e" not in archs:
+        raise ValueError(f"{path} has no arm64 slice (archs: {' '.join(archs)})")
+    if "x86_64" not in archs:
+        return
+    tmp = path.with_name(path.name + ".arm64")
+    subprocess.run(["lipo", "-thin", "arm64", path, "-output", tmp], check=True)
+    tmp.replace(path)
+
+
+def thin_tree(root):
+    for item in root.rglob("*"):
+        if item.is_file() and not item.is_symlink():
+            thin_to_arm64(item)
 
 
 def prepare(output, archives, product, version, expected, repo):
@@ -60,10 +83,13 @@ def prepare(output, archives, product, version, expected, repo):
                 with bundle.open(member) as source, dest.open("wb") as target:
                     shutil.copyfileobj(source, target)
         (stage / executable).chmod(0o755)
+        thin_to_arm64(stage / executable)
         target = output / product
         if target.exists():
             # Re-running against a prepared directory is safe. Keep user-edited
             # files intact if an existing directory belongs to another build.
+            # A directory prepared before 0.5.0 may still hold a universal CLI: thin it first.
+            thin_to_arm64(target / executable)
             paths = [item.relative_to(stage) for item in stage.rglob("*") if item.is_file()]
             if not all((target / p).is_file() and checksum(target / p) == checksum(stage / p) for p in paths):
                 raise ValueError(f"{target} contains a different renderer. Choose another output directory.")
@@ -74,12 +100,13 @@ def prepare(output, archives, product, version, expected, repo):
 
 
 def prepare_sparkle(output, archives, version, expected, repo):
-    """Sparkle.framework (universal), sign_update and generate_keys for scripts/release.sh, and the license."""
+    """Sparkle.framework (arm64 slice), sign_update and generate_keys for scripts/release.sh, and the license."""
     filename = f"Sparkle-{version}.tar.xz"
     target = output / "sparkle"
     if (target / "VERSION").is_file():
         if (target / "VERSION").read_text().strip() != version:
             raise ValueError(f"{target} contains another Sparkle. Choose another output directory.")
+        thin_tree(target)
         print(f"sparkle {version} verified", flush=True)
         return
     with tempfile.TemporaryDirectory(dir=output) as tmp:
@@ -97,6 +124,7 @@ def prepare_sparkle(output, archives, version, expected, repo):
         subprocess.run(["tar", "-xf", archive, "-C", stage, "./Sparkle.framework", "./bin/sign_update",
                         "./bin/generate_keys", "./LICENSE"], check=True)
         (stage / "VERSION").write_text(version + "\n")
+        thin_tree(stage)
         stage.rename(target)
     print(f"sparkle {version} verified", flush=True)
 

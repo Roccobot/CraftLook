@@ -3,7 +3,8 @@
 with the previous release, if any. Sparkle offers the highest build that the Mac can run.
 
     scripts/appcast.py --out appcast.xml --version 0.4.0 --build 12 --url URL --length BYTES
-        --signature BASE64 --notes URL [--min-system 13.0] [--previous FILE_OR_URL]
+        --signature BASE64 --notes URL [--min-system 13.0] [--hardware-requirements arm64]
+        [--previous FILE_OR_URL]
 
 The signature and length are what Sparkle's sign_update prints for the archive at URL. A build at or
 below one already listed is refused, so a release cannot be offered twice or below an older one.
@@ -19,14 +20,18 @@ from xml.sax.saxutils import escape, quoteattr
 SPARKLE = "http://www.andymatuschak.org/xml-namespaces/sparkle"
 
 
-def item(version, build, url, length, signature, notes, min_system):
+def item(version, build, url, length, signature, notes, min_system, hardware):
+    # Sparkle 2.9+ (this app bundles 2.11): hardwareRequirements=arm64 hides the item on Intel.
+    requirement = (
+        f"      <sparkle:hardwareRequirements>{escape(hardware)}</sparkle:hardwareRequirements>\n"
+        if hardware else "")
     return f"""    <item>
       <title>CraftLook {escape(version)}</title>
       <pubDate>{email.utils.formatdate(usegmt=True)}</pubDate>
       <sparkle:version>{int(build)}</sparkle:version>
       <sparkle:shortVersionString>{escape(version)}</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>{escape(min_system)}</sparkle:minimumSystemVersion>
-      <sparkle:fullReleaseNotesLink>{escape(notes)}</sparkle:fullReleaseNotesLink>
+{requirement}      <sparkle:fullReleaseNotesLink>{escape(notes)}</sparkle:fullReleaseNotesLink>
       <enclosure url={quoteattr(url)} length="{int(length)}" type="application/octet-stream" sparkle:edSignature={quoteattr(signature)}/>
     </item>
 """
@@ -54,6 +59,8 @@ def main(argv):
     for name in ["out", "version", "build", "url", "length", "signature", "notes"]:
         parser.add_argument(f"--{name}", required=True)
     parser.add_argument("--min-system", default="13.0")
+    parser.add_argument("--hardware-requirements", default="",
+                        help="sparkle:hardwareRequirements for this item, e.g. arm64.")
     parser.add_argument("--previous")
     args = parser.parse_args(argv)
     older, builds = previous_items(args.previous)
@@ -66,7 +73,7 @@ def main(argv):
     <link>https://github.com/Roccobot/CraftLook</link>
     <description>Updates of CraftLook, Finder previews for ArtCraft projects.</description>
     <language>en</language>
-{item(args.version, args.build, args.url, args.length, args.signature, args.notes, args.min_system)}{older}  </channel>
+{item(args.version, args.build, args.url, args.length, args.signature, args.notes, args.min_system, args.hardware_requirements)}{older}  </channel>
 </rss>
 """
     ET.fromstring(text)

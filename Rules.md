@@ -8,15 +8,16 @@
 
 ## 🧭 Che cos'è
 
-- **Un'app per macOS 13 o successivi, su Mac Intel e Apple silicon**, che mostra nel Finder
+- **Un'app per macOS 13 o successivi, su Apple silicon (M1 o successivi)**, che mostra nel Finder
   miniature e anteprime statiche dei progetti della suite ArtCraft, dei `.psd` e degli `.svg`. Da
   quale parte del file viene l'immagine di ogni formato lo dice la tabella del `README.md`.
 - **Com'è fatta**: un'app ospite (`Sources/Host.swift`), due estensioni Quick Look
   (`Sources/QuickLookPreview.swift` e `Sources/QuickLookThumbnail.swift`) e un servizio XPC privato
   in sandbox (`Sources/RenderService.swift`) che avvia i renderer su una copia temporanea del
-  progetto. I renderer sono le CLI universali di FigCraft, DesignCraft, VectorCraft, TextureCraft,
+  progetto. I renderer sono le CLI di FigCraft, DesignCraft, VectorCraft, TextureCraft,
   SolidCraft, FilmCraft, MaterialCraft ed EffectCraft, che `scripts/prepare_renderers.py` scarica
-  controllandone lo SHA-256; i file SVG li disegna la CLI di VectorCraft, e la timeline delle
+  (archivi universali a monte, di cui si tiene solo la parte arm64) controllandone lo SHA-256;
+  i file SVG li disegna la CLI di VectorCraft, e la timeline delle
   sessioni di SoundCraft la disegna l'app stessa (`Sources/Timeline.swift`), su una scheda sempre
   quadrata (scelta dell'utente del 2026-11-22).
 - **I renderer sono nell'app una volta sola**, in `Contents/Helpers`: le due estensioni Quick Look
@@ -26,7 +27,7 @@
   estensione ha il suo servizio, ma i renderer non si duplicano. Fino alla 0.4.2 i renderer stavano solo nel servizio delle
   miniature e l'anteprima (Spazio) chiedeva a Quick Look una miniatura grande
   (`QLThumbnailGenerator`); su un file SVG macOS serviva invece il generatore WebKit di sistema,
-  con un riquadro fisso che ritagliava il disegno. Dalla 0.4.3 l'estensione delle anteprime chiama
+  con un riquadro fisso che ritagliava il disegno. Dalla 0.5.0 l'estensione delle anteprime chiama
   il proprio servizio, come quella delle miniature. Fino alla build `10` del 2026-11-22 ogni
   estensione aveva la sua copia completa dei renderer, e l'app pesava 3,1 GB.
 - **Il servizio mette in coda le richieste**: due renderer alla volta, e chi aspetta resta in coda
@@ -40,7 +41,7 @@
   solo un nome di file nella stessa cartella (`href` e `xlink:href`, senza percorso, schema, `..`,
   query o frammento), copiato accanto alla copia temporanea del documento. Se non si può leggere,
   resta il segnaposto di VectorCraft. Un `clip-path` CSS non è applicato; se il font chiesto non
-  c'è, VectorCraft usa Source Sans 3 (scelta dell'utente del 2026-11-22, 0.4.3).
+  c'è, VectorCraft usa Source Sans 3 (scelta dell'utente del 2026-11-22, 0.5.0).
 - **Repo principale dal 2026-11-22** (scelta `Elenco-01` dell'utente, card `Pescatore`); la sessione
   titolare è `CraftWorks`, quella che lavora con le applicazioni della suite ArtCraft.
 
@@ -49,15 +50,16 @@
 - **Ramo principale `main`.**
 - **L'app si chiama CraftLook dalla 0.4.0**, la prima release col nome nuovo (scelta dell'utente del 2026-11-22): `CraftLook.app`,
   identificativi `com.roccobot.craftlook`, `.preview`, `.thumbnail` e `.thumbnail.render`, archivi
-  `craftlook-<versione>-macos.zip`, `-source.zip` e `-SHA256.txt`. Fino alla 0.2.5 era 'ArtCraft
+  `craftlook-<versione>-macos.tar.xz` (fino alla 0.4.2 era `-macos.zip`), `-source.zip` e `-SHA256.txt`. Fino alla 0.2.5 era 'ArtCraft
   Quick Look', con gli identificativi `org.artcraftquicklook.local` e il repo `artcraft-quick-look`,
   che GitHub reindirizza a `CraftLook`; l'archivio della release 0.2.5 tiene il nome vecchio. Con
   identificativi diversi le due app non si riconoscono: prima di installare CraftLook si cancella
   'ArtCraft Quick Look', perché le due non mostrino gli stessi file.
 - **Versione SemVer**, con la fonte unica in `configure.py`: `CFBundleShortVersionString` è la
   versione mostrata, `CFBundleVersion` il numero di build, che sale di uno a ogni versione
-  pubblicata, non a ogni build provata. Al 2026-11-22 l'ultima pubblicata è `0.4.3` (`15`), quella
-  che porta `configure.py`; la `0.3.0` (`10`) e la `0.3.1`
+  pubblicata, non a ogni build provata. Al 2026-11-22 l'ultima pubblicata è `0.5.0` (`15`), quella
+  che porta `configure.py`. La `0.4.3` non è stata pubblicata: le sue correzioni SVG sono nella
+  `0.5.0`, che è anche la prima solo per Apple silicon. La `0.3.0` (`10`) e la `0.3.1`
   (`11`) le ha provate solo l'utente sul suo Mac, e le loro novità sono nelle note della `0.4.0`.
   Le note sono una per versione pubblicata, in `docs/release-notes/`.
 - **Una versione pubblicata è una release di GitHub** di questo repo, con l'app costruita da
@@ -114,9 +116,13 @@
 
 ## 🔄 Aggiornamenti
 
-- **Sparkle 2, dalla 0.4.0** (scelta dell'utente del 2026-11-22): `Sparkle.framework` universale in
-  `Contents/Frameworks`, dal pacchetto ufficiale che `scripts/prepare_renderers.py` scarica con
-  lo SHA-256, collegato dall'app (`Sources/Host.swift`); senza Sparkle la build non si aggiorna.
+- **Sparkle 2, dalla 0.4.0** (scelta dell'utente del 2026-11-22): `Sparkle.framework` in
+  `Contents/Frameworks` (dal pacchetto ufficiale, di cui si tiene solo la parte arm64), che
+  `scripts/prepare_renderers.py` scarica con lo SHA-256, collegato dall'app (`Sources/Host.swift`);
+  senza Sparkle la build non si aggiorna. Dalla 0.5.0 la voce nuova dell'appcast ha
+  `sparkle:hardwareRequirements` `arm64`, così una copia Intel della 0.4.2 non riceve un
+  aggiornamento che non potrebbe eseguire. L'archivio della release è un `tar.xz`, perché un
+  ZIP non conserva i collegamenti fisici dei renderer e li triplicherebbe su disco.
 - **L'app non è in sandbox**, quindi i servizi XPC di Sparkle (`Installer.xpc`,
   `Downloader.xpc`) restano fuori, come dice la guida di Sparkle, e servono solo `Autoupdate` e
   `Updater.app`, firmati da `build.sh` dall'interno verso l'esterno col runtime protetto.

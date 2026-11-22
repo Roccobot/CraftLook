@@ -28,8 +28,9 @@ def write(path, data):
 def info(name, kind, identifier):
     return dict(CFBundleExecutable=name, CFBundleIdentifier=identifier, CFBundleName=name,
                 CFBundleDisplayName='CraftLook', CFBundlePackageType=kind,
-                CFBundleVersion='15', CFBundleShortVersionString='0.4.3',
+                CFBundleVersion='15', CFBundleShortVersionString='0.5.0',
                 CFBundleInfoDictionaryVersion='6.0', LSMinimumSystemVersion='13.0',
+                LSArchitecturePriority=['arm64'], LSRequiresNativeExecution=True,
                 CFBundleDevelopmentRegion='en', CFBundleSupportedPlatforms=['MacOSX'])
 
 host = info('CraftLook', 'APPL', bundle)

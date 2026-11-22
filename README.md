@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/Roccobot/CraftLook/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/Roccobot/CraftLook?include_prereleases&label=release&color=03484F"></a>
-  <img alt="macOS 13+" src="https://img.shields.io/badge/macOS-13%2B-487D82?logo=apple&logoColor=white">
+  <img alt="Apple silicon, macOS 13+" src="https://img.shields.io/badge/macOS-13%2B_Apple_silicon-487D82?logo=apple&logoColor=white">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-487D82"></a>
 </p>
 
@@ -61,13 +61,13 @@ Since version 0.4.0, CraftLook checks for a new version once a day while it's op
 
 ### Requirements
 
-- macOS 13 or later, on an Intel or Apple silicon Mac.
-- About 1.6 GB of disk space, renderers included (see [Why it's so large](#why-its-so-large)).
+- An Apple silicon Mac (M1 or later), with macOS 13 or later.
+- About 810 MB of disk space, renderers included (see [Why it's so large](#why-its-so-large)).
 - No ArtCraft app has to be installed: the renderers ship inside CraftLook. Photoshop isn't needed for `.psd` files either.
 
 ### Why it's so large
 
-The download is about 720 MB, and the app takes about 1.6 GB once unzipped. Almost all of it is the eight renderers: FigCraft, DesignCraft, VectorCraft, TextureCraft, SolidCraft, FilmCraft, MaterialCraft and EffectCraft each ship the headless drawing engine of their app, the same one the app uses, so CraftLook can draw a project on the fly, exactly as it looks, without the app installed. Each one is universal, with code for both Intel and Apple silicon, and they range from about 30 MB (MaterialCraft) to about 540 MB (SolidCraft). Everything else, the app itself, its Quick Look extensions, Sparkle and the licenses, takes about 7 MB. The renderers are in the app only once, shared by the two extensions.
+The download is about 240 MB, and the app takes about 810 MB once decompressed. Almost all of it is the eight renderers: FigCraft, DesignCraft, VectorCraft, TextureCraft, SolidCraft, FilmCraft, MaterialCraft and EffectCraft each ship the headless drawing engine of their app, the same one the app uses, so CraftLook can draw a project on the fly, exactly as it looks, without the app installed. From 0.5.0 each one is Apple silicon only, and they range from about 16 MB (MaterialCraft) to about 270 MB (SolidCraft). Everything else, the app itself, its Quick Look extensions, Sparkle and the licenses, takes about 7 MB. The renderers are in the app only once, shared by the two extensions.
 
 ## How it works
 
@@ -79,7 +79,7 @@ macOS uses one Quick Look extension for each file type. If another app also prev
 
 ## Build from source
 
-Use a Mac with Xcode Command Line Tools and Python 3. The preparation script downloads the universal CLI releases and Sparkle listed in [THIRD_PARTY.md](THIRD_PARTY.md), each at its latest version, pre-releases included, checks their SHA-256 digests and preserves their notices.
+Use a Mac with Xcode Command Line Tools and Python 3. The preparation script downloads the official CLI ZIP releases (upstream ships them as universal archives; only the arm64 slice is kept) and Sparkle listed in [THIRD_PARTY.md](THIRD_PARTY.md), each at its latest version, pre-releases included, checks their SHA-256 digests and preserves their notices.
 
 ```sh
 python3 scripts/prepare_renderers.py "$PWD/engines"
