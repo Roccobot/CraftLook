@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/images/kingfisher.png" width="128" alt="L'icona di CraftLook, un martin pescatore con un pesce nel becco">
+  <img src="docs/images/kingfisher.png" width="256" height="256" alt="L'icona di CraftLook, un martin pescatore con un pesce nel becco">
 </p>
 
 <h1 align="center">CraftLook</h1>
