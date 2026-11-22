@@ -2,16 +2,24 @@ import Foundation
 import QuickLookThumbnailing
 
 final class ThumbnailProvider: QLThumbnailProvider {
+    /// The renderer service lives in this extension only; the preview extension asks for a large
+    /// thumbnail, so the renderers are in the app once.
+    private static let service = (Bundle(for: ThumbnailProvider.self).bundleIdentifier ?? "") + ".render"
+
     override func provideThumbnail(for request: QLFileThumbnailRequest,
                                    _ handler: @escaping (QLThumbnailReply?, Error?) -> Void) {
         do {
+            let url = request.fileURL
             let maxSide = min(2048, max(1, Int(ceil(max(request.maximumSize.width,
                                                         request.maximumSize.height) * request.scale))))
+            let rendered = { RenderXPC.render(url, maxSide: maxSide, service: Self.service) }
             let image: CGImage
-            if let embedded = try? DocumentImage.load(request.fileURL, maxSide: maxSide) {
+            if RenderXPC.rendersFirst(url.pathExtension.lowercased(), maxSide: maxSide), let picture = rendered() {
+                image = picture
+            } else if let embedded = try? DocumentImage.load(url, maxSide: maxSide) {
                 image = embedded
-            } else if let rendered = RenderXPC.render(request.fileURL, maxSide: maxSide, provider: ThumbnailProvider.self) {
-                image = rendered
+            } else if let picture = rendered() {
+                image = picture
             } else {
                 throw ReadError.unavailable
             }

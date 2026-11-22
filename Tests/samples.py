@@ -2,8 +2,10 @@
 """Write small projects for HeadlessCheck with the prepared renderers: python3 Tests/samples.py ENGINES OUT.
 
 Each sample comes from its app's CLI (the built-in demo or a template), so none is kept in the repo.
-The SVG draws its label with a real <text> element in a font family most Macs don't have."""
-import json, pathlib, subprocess, sys, tempfile
+The SVG draws its label with a real <text> element in a font family most Macs don't have.
+offline.fcproj covers the frame with a still that is then deleted, as Quick Look sees a project whose
+media are elsewhere."""
+import json, pathlib, struct, subprocess, sys, tempfile, zlib
 
 SVG = '''<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
@@ -16,6 +18,12 @@ SVG = '''<?xml version="1.0" encoding="UTF-8"?>
 </svg>
 '''
 
+def png(width, height, rgb):
+    def chunk(tag, data): return struct.pack('>I', len(data)) + tag + data + struct.pack('>I', zlib.crc32(tag + data))
+    rows = (b'\0' + bytes(rgb) * width) * height
+    return (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('>2I5B', width, height, 8, 2, 0, 0, 0))
+            + chunk(b'IDAT', zlib.compress(rows)) + chunk(b'IEND', b''))
+
 def main(engines, out):
     out.mkdir(parents=True, exist_ok=True)
     cli = lambda name: str(engines / name / f'{name}-cli')
@@ -27,12 +35,23 @@ def main(engines, out):
         graph = pathlib.Path(tmp) / 'pbr.sbs'
         run(cli('materialcraft'), 'new', 'pbr', str(graph))
         run(cli('materialcraft'), 'run', str(graph), 'file.save', json.dumps({'path': str(out / 'pbr.mcraft')}))
+        still = pathlib.Path(tmp) / 'still.png'
+        still.write_bytes(png(1920, 1080, (200, 40, 40)))
+        offline = out / 'offline.fcproj'
+        run(cli('filmcraft'), '--demo', 'exec', 'file.saveAs', f'path={offline}')
+        imported = subprocess.run([cli('filmcraft'), '--project', str(offline), '--save', 'import', str(still), '--compact'],
+                                  check=True, capture_output=True, text=True)
+        item = json.loads(imported.stdout)['items'][0]
+        head = json.loads(offline.read_text())['view']['playheads']
+        seconds = max(head.values()) / 254_016_000_000
+        run(cli('filmcraft'), '--project', str(offline), '--save', 'exec', 'timeline.place',
+            json.dumps({'item': item, 'track': 'new', 'seconds': max(0, seconds - 1), 'duration': {'seconds': 3}}))
     (out / 'box.solidcraft').write_bytes((out / 'box.sc').read_bytes())
     run(cli('filmcraft'), '--demo', 'exec', 'file.saveAs', f'path={out / "demo.fcproj"}')
     for ext in ('ecproj', 'ecprojx'):
         run(cli('effectcraft'), '--demo', 'exec', 'file.saveAs', '--params', json.dumps({'path': str(out / f'demo.{ext}')}))
     (out / 'label.svg').write_text(SVG)
-    print('\n'.join(sorted(str(p) for p in out.iterdir())))
+    print('\n'.join(sorted(str(p) for p in out.iterdir() if not p.name.startswith('.'))))
 
 if __name__ == '__main__':
     main(pathlib.Path(sys.argv[1]).resolve(), pathlib.Path(sys.argv[2]).resolve())

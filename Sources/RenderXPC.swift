@@ -17,6 +17,10 @@ enum RenderXPC {
     ]
 
     static let supported = Set(renderers.keys)
+    /// Formats whose saved image is only a small thumbnail: a large picture comes from the renderer first.
+    static func rendersFirst(_ ext: String, maxSide: Int) -> Bool {
+        ["figcraft", "designcraft"].contains(ext) && maxSide > 1024
+    }
     static let inputLimit = 256 << 20
     static let imageLimit = 32 << 20
 
@@ -29,17 +33,17 @@ enum RenderXPC {
         return bytes as Data
     }
 
-    static func render(_ file: URL, maxSide: Int, provider: AnyClass) -> CGImage? {
+    /// The picture the renderer service draws for `file`; `service` is the service's bundle identifier.
+    static func render(_ file: URL, maxSide: Int, service: String) -> CGImage? {
         let ext = file.pathExtension.lowercased()
         guard supported.contains(ext),
-              let id = Bundle(for: provider).bundleIdentifier,
               let props = try? file.resourceValues(forKeys: [.isRegularFileKey, .fileSizeKey]),
               props.isRegularFile == true, let size = props.fileSize, (1...inputLimit).contains(size),
               let fh = try? FileHandle(forReadingFrom: file) else { return nil }
         defer { try? fh.close() }
         guard let document = try? readAt(fh, 0, size) else { return nil }
 
-        let connection = NSXPCConnection(serviceName: id + ".render")
+        let connection = NSXPCConnection(serviceName: service)
         connection.remoteObjectInterface = NSXPCInterface(with: RenderServiceProtocol.self)
         let result = RenderResult()
         connection.invalidationHandler = { result.finish(nil) }

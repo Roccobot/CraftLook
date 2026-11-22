@@ -4,8 +4,8 @@ from pathlib import Path
 
 app = Path(sys.argv[1])
 bundle = 'org.artcraftquicklook.local'
-# The project types: UTI, extensions and conformance. SolidCraft, FilmCraft, MaterialCraft and
-# EffectCraft repeat the declaration their own app exports.
+# The project types: UTI, extensions and conformance. SolidCraft, FilmCraft, MaterialCraft,
+# EffectCraft and SoundCraft repeat the declaration their own app exports.
 formats = {
     'ai.storyteller.figcraft.document': (['figcraft'], ['public.content', 'public.data']),
     'ai.storyteller.designcraft.document': (['designcraft'], ['public.content', 'public.data']),
@@ -16,6 +16,7 @@ formats = {
     'ai.storyteller.filmcraft.project': (['fcproj'], ['public.data', 'public.json']),
     'ai.storyteller.materialcraft.package': (['mcraft'], ['public.data', 'public.content']),
     'ai.storyteller.effectcraft.document': (['ecproj', 'ecprojx'], ['public.data', 'public.content']),
+    'ai.storyteller.soundcraft.session': (['scraft'], ['public.data', 'public.content']),
 }
 # Types macOS declares itself, so they are only listed in the extensions.
 system_types = ['com.adobe.photoshop-image', 'public.svg-image']
@@ -49,9 +50,11 @@ for name, point in [('Preview','preview'),('Thumbnail','thumbnail')]:
                           NSExtensionPrincipalClass=f'{name}.{name}Provider',
                           NSExtensionAttributes=attrs)
     write(app/f'Contents/PlugIns/{name}.appex/Contents/Info.plist', p)
-    service = info('CraftRender', 'XPC!', bundle + '.' + point + '.render')
-    service['XPCService'] = {'ServiceType': 'Application'}
-    write(app/f'Contents/PlugIns/{name}.appex/Contents/XPCServices/CraftRender.xpc/Contents/Info.plist', service)
+# The renderer service, in the thumbnail extension only: the preview extension asks Quick Look for a
+# large thumbnail, so the renderers are in the app once.
+service = info('CraftRender', 'XPC!', bundle + '.thumbnail.render')
+service['XPCService'] = {'ServiceType': 'Application'}
+write(app/'Contents/PlugIns/Thumbnail.appex/Contents/XPCServices/CraftRender.xpc/Contents/Info.plist', service)
 write(app.parent/'Service.entitlements', {'com.apple.security.app-sandbox': True})
 write(app.parent/'Extension.entitlements', {
     'com.apple.security.app-sandbox': True,

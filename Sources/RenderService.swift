@@ -2,8 +2,11 @@ import Foundation
 import OSLog
 
 private final class Renderer: NSObject, RenderServiceProtocol, NSXPCListenerDelegate {
-    private let jobs = DispatchQueue(label: "org.artcraftquicklook.local.render")
-    private let available = DispatchSemaphore(value: 1)
+    // Finder asks for many thumbnails at once: requests wait for one of two renderer slots
+    // instead of being turned away, until the time a renderer would have had runs out.
+    private let jobs = DispatchQueue(label: "org.artcraftquicklook.local.render", attributes: .concurrent)
+    private let slots = DispatchSemaphore(value: 2)
+    private let log = Logger(subsystem: "org.artcraftquicklook.local", category: "service")
 
     func listener(_ listener: NSXPCListener, shouldAcceptNewConnection connection: NSXPCConnection) -> Bool {
         guard connection.effectiveUserIdentifier == geteuid() else { return false }
@@ -17,13 +20,19 @@ private final class Renderer: NSObject, RenderServiceProtocol, NSXPCListenerDele
                 reply: @escaping (Data?) -> Void) {
         guard RenderXPC.supported.contains(fileExtension),
               (1...RenderXPC.inputLimit).contains(document.count),
-              (1...2048).contains(maxSide),
-              available.wait(timeout: .now()) == .success else {
+              (1...2048).contains(maxSide) else {
             reply(nil)
             return
         }
+        // The client waits 14 seconds from its request; a render has to end within 12 of it.
+        let deadline = DispatchTime.now() + 12
         jobs.async {
-            defer { self.available.signal() }
+            guard self.slots.wait(timeout: deadline) == .success else {
+                self.log.error("Renderer queue full until the deadline")
+                reply(nil)
+                return
+            }
+            defer { self.slots.signal() }
             let fm = FileManager.default
             let temp = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
             do {
@@ -32,11 +41,10 @@ private final class Renderer: NSObject, RenderServiceProtocol, NSXPCListenerDele
                 let file = temp.appendingPathComponent("project." + fileExtension)
                 try document.write(to: file)
                 let tools = Bundle.main.bundleURL.appendingPathComponent("Contents/Helpers", isDirectory: true)
-                let image = HeadlessRenderer.render(file, maxSide: maxSide, tools: tools)
+                let image = HeadlessRenderer.render(file, maxSide: maxSide, tools: tools, deadline: deadline)
                 reply(image.flatMap(RenderXPC.png))
             } catch {
-                Logger(subsystem: "org.artcraftquicklook.local", category: "service")
-                    .error("Renderer input failed (\((error as NSError).code))")
+                self.log.error("Renderer input failed (\((error as NSError).code))")
                 reply(nil)
             }
         }

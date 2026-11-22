@@ -49,6 +49,13 @@ def all_files(d):
     }.items(): (d/name).write_bytes(data)
     folder=d/'package.pcraft'; (folder/'composite').mkdir(parents=True)
     (folder/'manifest.json').write_bytes(b'{}'); (folder/'composite/preview.png').write_bytes(red)
+    session={'format_version':1,'name':'Prova','sample_rate':48000,'tempo':{'tempos':[{'tick':0,'bpm':120.0}],'meters':[{'tick':0,'numerator':4,'denominator':4}]},
+             'markers':[{'name':'Strofa','start':96000}],'edit':{'playhead':48000},
+             'tracks':[{'name':'Basso','kind':'Audio','color':[150,98,206],'active_playlist':0,'playlists':[{'clips':[{'name':'Basso','start':0,'length':192000}]}]},
+                       {'name':'Tastiere','kind':'Instrument','color':[80,190,168],'active_playlist':0,'playlists':[{'clips':[{'name':'Accordi','start':48000,'length':96000,
+                        'content':{'Midi':{'sequence':{'notes':[{'pitch':60,'start':0,'length':900},{'pitch':64,'start':960,'length':900}]}}}}]}]}]}
+    (d/'session.scraft').write_text(json.dumps(session))
+    (d/'notes.scraft').write_text(json.dumps({'name':'Senza formato','tracks':[]}))
     (d/'input.png').write_bytes(red)
     header=struct.pack('>4sH6xHIIHH',b'8BPS',1,3,2,2,8,3)
     (d/'image.psd').write_bytes(header + bytes(14) + bytes([255])*4 + bytes(8))
@@ -79,7 +86,11 @@ if __name__=='__main__':
             expected='2048x2048 ff0000' if '-pdf.vectorcraft' in name else '2x2 ff0000'
             assert result.stdout.decode().strip()==expected,(name,result.stdout)
             checks+=1
-        for name in ['broken.figcraft','absent.tcraft','wrong.figcraft','other.drawcraft','oversized.figcraft','forged.psd','escape.pcraft']:
+        # A SoundCraft session is drawn as its timeline: a card 1600 points wide and 560 high at 2048 pixels.
+        result=subprocess.run([command,d/'session.scraft'],capture_output=True)
+        assert result.returncode==0 and result.stdout.decode().split()[0]=='2048x717',('session.scraft',result.stdout,result.stderr)
+        checks+=1
+        for name in ['notes.scraft','broken.figcraft','absent.tcraft','wrong.figcraft','other.drawcraft','oversized.figcraft','forged.psd','escape.pcraft']:
             result=subprocess.run([command,d/name],capture_output=True)
             assert result.returncode!=0,(name,result.stdout)
             checks+=1

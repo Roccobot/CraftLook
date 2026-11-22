@@ -57,6 +57,8 @@ enum DocumentImage {
             guard let p = root["preview"] as? [String: Any],
                   let decoded = inlineData(p) else { throw ReadError.unavailable }
             return try decode(decoded, maxSide: maxSide)
+        case "scraft":
+            return try Timeline.image(prefix(url, limit: vectorLimit, whole: true), maxSide: maxSide)
         default:
             throw ReadError.unavailable
         }
