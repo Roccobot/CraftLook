@@ -51,7 +51,7 @@ CraftLook si aggiorna da sé (vedi [Aggiornamenti](#aggiornamenti)). Fino alla v
 
 ### Primo avvio
 
-L'app ha una firma ad hoc e non è ancora notarizzata da Apple, quindi la prima volta macOS può rifiutarsi di aprirla. In quel caso vai nelle **Impostazioni di Sistema**, in **Privacy e sicurezza**, e fai clic su **Apri comunque**, come spiega la [guida Apple](https://support.apple.com/it-it/102445). Basta farlo una volta.
+CraftLook è firmata con un Developer ID e notarizzata da Apple, quindi macOS la apre come ogni altra app scaricata. La sua finestra dice dove attivare le estensioni.
 
 Se il Finder mostra ancora un'icona generica, controlla che le estensioni di CraftLook siano attive nelle **Impostazioni di Sistema**, in **Generali**, **Elementi login ed estensioni**, **Quick Look**, e che **Mostra anteprima icona** sia attivo nelle opzioni Vista del Finder.
 

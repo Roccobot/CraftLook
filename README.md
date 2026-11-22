@@ -51,7 +51,7 @@ CraftLook updates itself (see [Updates](#updates)). It was called ArtCraft Quick
 
 ### First launch
 
-The app is ad hoc signed and not yet notarized by Apple, so macOS may refuse to open it the first time. If it does, go to **System Settings**, **Privacy & Security**, and click **Open Anyway**, as [Apple's guide](https://support.apple.com/en-us/102445) explains. You only need to do this once.
+CraftLook is signed with a Developer ID and notarized by Apple, so macOS opens it like any other downloaded app. Its window shows where to turn the extensions on.
 
 If Finder still shows a generic icon, check that the CraftLook extensions are on in **System Settings**, under **General**, **Login Items & Extensions**, **Quick Look**, and that **Show icon preview** is on in Finder's View Options.
 

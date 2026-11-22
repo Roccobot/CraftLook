@@ -53,7 +53,8 @@
   `scripts/release.sh`: `build.sh`, gli archivi con gli SHA-256 e l'appcast di Sparkle
   (§ '🔄 Aggiornamenti'); con l'identità Developer ID Application di `CRAFTLOOK_SIGN_ID` anche la
   notarizzazione col profilo `craftlook-notary` di `notarytool` e la graffetta (`stapler`). Senza
-  identità firma ad hoc; finché una release non è notarizzata lo dicono il README e le note.
+  identità firma ad hoc. La 0.4.0 è la prima release firmata Developer ID e notarizzata; una release
+  ad hoc, se mai servisse, lo dice nel README e nelle note.
 - **Ogni parte dell'app ha il runtime protetto** (`--options runtime`), firmata dall'interno verso
   l'esterno: renderer, servizio, estensioni, app. I renderer tengono gli entitlement della firma
   originale (`--preserve-metadata=entitlements`): solo SolidCraft ne ha uno,
