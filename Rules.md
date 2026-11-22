@@ -45,8 +45,8 @@
   'ArtCraft Quick Look', perché le due non mostrino gli stessi file.
 - **Versione SemVer**, con la fonte unica in `configure.py`: `CFBundleShortVersionString` è la
   versione mostrata, `CFBundleVersion` il numero di build, che sale di uno a ogni versione
-  pubblicata, non a ogni build provata. Al 2026-11-22 l'ultima pubblicata è `0.4.0` (`12`), e
-  `configure.py` porta `0.4.1` (`13`), la versione in preparazione: la `0.3.0` (`10`) e la `0.3.1`
+  pubblicata, non a ogni build provata. Al 2026-11-22 l'ultima pubblicata è `0.4.1` (`13`), quella
+  che porta `configure.py`; la `0.3.0` (`10`) e la `0.3.1`
   (`11`) le ha provate solo l'utente sul suo Mac, e le loro novità sono nelle note della `0.4.0`.
   Le note sono una per versione pubblicata, in `docs/release-notes/`.
 - **Una versione pubblicata è una release di GitHub** di questo repo, con l'app costruita da
