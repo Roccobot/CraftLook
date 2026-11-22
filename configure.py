@@ -4,6 +4,7 @@ from pathlib import Path
 
 app = Path(sys.argv[1])
 bundle = 'com.roccobot.craftlook'
+PUBLIC_ED_KEY = 'iOrWlpw4J6LLf7J8WvKwKiECiEMDbMWJ183pypWdrk4='
 # The project types: UTI, extensions and conformance. SolidCraft, FilmCraft, MaterialCraft,
 # EffectCraft and SoundCraft repeat the declaration their own app exports.
 formats = {
@@ -27,12 +28,19 @@ def write(path, data):
 def info(name, kind, identifier):
     return dict(CFBundleExecutable=name, CFBundleIdentifier=identifier, CFBundleName=name,
                 CFBundleDisplayName='CraftLook', CFBundlePackageType=kind,
-                CFBundleVersion='11', CFBundleShortVersionString='0.3.1',
+                CFBundleVersion='12', CFBundleShortVersionString='0.4.0',
                 CFBundleInfoDictionaryVersion='6.0', LSMinimumSystemVersion='13.0',
-                CFBundleDevelopmentRegion='it', CFBundleSupportedPlatforms=['MacOSX'])
+                CFBundleDevelopmentRegion='en', CFBundleSupportedPlatforms=['MacOSX'])
 
 host = info('CraftLook', 'APPL', bundle)
 host['CFBundleIconFile'] = 'CraftLook.icns'
+# Sparkle (Rules.md, 'Aggiornamenti'): the appcast published with each release, the public half of
+# the EdDSA key that signs the update archives (account craftlook of Rocco's keychain), a check a
+# day while the app runs, and a question before installing. The app is not sandboxed, so Sparkle's
+# XPC services are not needed.
+host.update(SUFeedURL='https://github.com/Roccobot/CraftLook/releases/latest/download/appcast.xml',
+            SUPublicEDKey=PUBLIC_ED_KEY, SUEnableAutomaticChecks=True, SUAutomaticallyUpdate=False,
+            SUScheduledCheckInterval=86400)
 host['UTImportedTypeDeclarations'] = [
     dict(UTTypeIdentifier=uti, UTTypeDescription=f'{extensions[0]} document',
          UTTypeTagSpecification={'public.filename-extension': extensions}, UTTypeConformsTo=conforms)

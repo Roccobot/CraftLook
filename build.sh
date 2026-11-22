@@ -17,10 +17,16 @@ mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources" "$build/cache"
 python3 configure.py "$app"
 cp "Resources/CraftLook.icns" "$app/Contents/Resources/CraftLook.icns"
 cp LICENSE ARTWORK.md "$app/Contents/Resources/"
+# Sparkle, prepared beside the renderers: the app links it from Contents/Frameworks. Without it the
+# app is built without updates (Sources/Host.swift, canImport(Sparkle)).
+updater=()
+if [[ -n "$engines" && -d "$engines/sparkle/Sparkle.framework" ]]; then
+  updater=(-F "$engines/sparkle" -framework Sparkle -Xlinker -rpath -Xlinker @executable_path/../Frameworks)
+fi
 common=(Sources/Archive.swift Sources/DocumentImage.swift Sources/Drawing.swift Sources/Timeline.swift Sources/RenderXPC.swift)
 for arch in arm64 x86_64; do
   flags=(-target "$arch-apple-macos13.0" -module-cache-path "$build/cache" -O)
-  xcrun swiftc "${flags[@]}" Sources/Host.swift -o "$build/host-$arch"
+  xcrun swiftc "${flags[@]}" ${updater[@]+"${updater[@]}"} Sources/Host.swift -o "$build/host-$arch"
   xcrun swiftc "${flags[@]}" "${common[@]}" Sources/HeadlessRenderer.swift Sources/RenderService.swift \
     -o "$build/CraftRender-$arch"
   for name in Preview Thumbnail; do
@@ -57,6 +63,17 @@ fi
 for name in Preview Thumbnail; do
   "${sign[@]}" --entitlements "$build/Extension.entitlements" "$app/Contents/PlugIns/$name.appex"
 done
+if (( ${#updater[@]} )); then
+  # The app is not sandboxed, so Sparkle's XPC services stay out; its helpers are signed inside out.
+  framework="$app/Contents/Frameworks/Sparkle.framework"
+  mkdir -p "$app/Contents/Frameworks" "$app/Contents/Resources/Notices/sparkle"
+  ditto "$engines/sparkle/Sparkle.framework" "$framework"
+  rm -rf "$framework/XPCServices" "$framework/Versions/B/XPCServices"
+  cp "$engines/sparkle/LICENSE" "$app/Contents/Resources/Notices/sparkle/"
+  "${sign[@]}" "$framework/Versions/B/Autoupdate"
+  "${sign[@]}" "$framework/Versions/B/Updater.app"
+  "${sign[@]}" "$framework"
+fi
 "${sign[@]}" "$app"
 codesign --verify --deep --strict "$app"
 echo "$app"

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Prepare the pinned upstream CLI archives and their notices for build.sh."""
+"""Prepare the pinned upstream CLI archives, Sparkle and their notices for build.sh."""
 import argparse
 import hashlib
 from pathlib import Path, PurePosixPath
 import shutil
+import subprocess
 import tempfile
 import urllib.request
 from zipfile import ZipFile
@@ -20,6 +21,9 @@ RENDERERS = {
     "materialcraft": ("0.4.1", "bcf0e87191dfca39ba14c8110823b21ed5bc5078ad7ae8e4cff380d83fec6edc", "storytold/materialcraft"),
     "effectcraft": ("0.24.1", "2781eda194372ad47f4c0c7df8b1d38501a3e90bb499282f57e9598a85958673", "storytold/effectcraft"),
 }
+# Sparkle 2, the updater of the app: version, SHA-256 of its release archive, repository. Also at its
+# latest release, pre-releases included.
+SPARKLE = ("2.11.0-beta.1", "896daf5116e4edb12d00cc6f87ce1ca90fff1e106c1cbb07988bcdbf3ce38c4c", "sparkle-project/Sparkle")
 
 
 def checksum(path):
@@ -69,6 +73,34 @@ def prepare(output, archives, product, version, expected, repo):
         print(f"{product} {version} verified", flush=True)
 
 
+def prepare_sparkle(output, archives, version, expected, repo):
+    """Sparkle.framework (universal), sign_update and generate_keys for scripts/release.sh, and the license."""
+    filename = f"Sparkle-{version}.tar.xz"
+    target = output / "sparkle"
+    if (target / "VERSION").is_file():
+        if (target / "VERSION").read_text().strip() != version:
+            raise ValueError(f"{target} contains another Sparkle. Choose another output directory.")
+        print(f"sparkle {version} verified", flush=True)
+        return
+    with tempfile.TemporaryDirectory(dir=output) as tmp:
+        scratch = Path(tmp)
+        archive = archives / filename if archives else scratch / filename
+        if not archives:
+            url = f"https://github.com/{repo}/releases/download/{version}/{filename}"
+            with urllib.request.urlopen(url, timeout=120) as source, archive.open("wb") as target_file:
+                shutil.copyfileobj(source, target_file)
+        if checksum(archive) != expected:
+            raise ValueError(f"Unexpected SHA-256 for {filename}")
+        stage = scratch / "sparkle"
+        stage.mkdir()
+        # bsdtar keeps the framework's symbolic links.
+        subprocess.run(["tar", "-xf", archive, "-C", stage, "./Sparkle.framework", "./bin/sign_update",
+                        "./bin/generate_keys", "./LICENSE"], check=True)
+        (stage / "VERSION").write_text(version + "\n")
+        stage.rename(target)
+    print(f"sparkle {version} verified", flush=True)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("output", type=Path, nargs="?")
@@ -83,3 +115,4 @@ if __name__ == "__main__":
     options.output.mkdir(parents=True, exist_ok=True)
     for name, (release, digest, repo) in RENDERERS.items():
         prepare(options.output, options.archives, name, release, digest, repo)
+    prepare_sparkle(options.output, options.archives, *SPARKLE)

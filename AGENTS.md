@@ -288,10 +288,13 @@ Un file più specifico vince **dove parla**, e il suo silenzio non è una deroga
 - **Build e prove solo su macOS, con gli strumenti di Xcode**: `scripts/prepare_renderers.py`,
   `build.sh`, `Tests/check.py`, `Tests/samples.py` con `Tests/HeadlessCheck.swift` e
   `Tests/service_check.sh` (`Rules.md` § '🧰 Build e prove').
-- **Le dipendenze sono i renderer**, con versione e SHA-256 in `scripts/prepare_renderers.py`
+- **Le dipendenze sono i renderer e Sparkle**, con versione e SHA-256 in `scripts/prepare_renderers.py`
   e il registro in `docs/Dependencies.json`, che il flusso `dependencies.yml` controlla ogni lunedì;
   ognuno all'ultima versione, anche pre-release o beta, senza le build notturne (`Rules.md` § '🔗 Le
   dipendenze').
+- **Si aggiorna con Sparkle 2** dall'appcast allegato a ogni release; ⚠️⚠️ la chiave EdDSA privata
+  (account `craftlook` del Portachiavi di Rocco) non si legge, non si stampa e non entra mai nel
+  repo né in chat (`Rules.md` § '🔄 Aggiornamenti').
 - **I renderer sono nell'app una volta sola**, nel servizio XPC dell'estensione delle miniature, che
   mette in coda le richieste (`Rules.md` § '🧭 Che cos'è').
 - **Il martin pescatore non si tocca**: l'icona e le sue immagini sono fuori dalla licenza MIT del

@@ -14,3 +14,7 @@ CraftLook packages the universal macOS CLI releases listed below. Each renderer'
 | EffectCraft | [0.24.1](https://github.com/storytold/effectcraft/releases/tag/v0.24.1) | `2781eda194372ad47f4c0c7df8b1d38501a3e90bb499282f57e9598a85958673` |
 
 SolidCraft comes from Tangency Labs, the other renderers from the ArtCraft team. The upstream notices offer the renderer code under MIT or Apache-2.0 and identify separate terms for third-party components and ArtCraft branding. The macOS build signs local copies of the CLI executables as part of signing the application, with the hardened runtime and the entitlements of their upstream signature: SolidCraft's allow-unsigned-executable-memory, for the WebAssembly code its wasmtime compiles, is the only one.
+
+## Sparkle
+
+CraftLook updates itself with [Sparkle 2.11.0-beta.1](https://github.com/sparkle-project/Sparkle/releases/tag/2.11.0-beta.1) (release archive SHA-256 `896daf5116e4edb12d00cc6f87ce1ca90fff1e106c1cbb07988bcdbf3ce38c4c`), the universal `Sparkle.framework` in `CraftLook.app/Contents/Frameworks/`, without its XPC services, which only sandboxed apps use. Sparkle is MIT-licensed, with the notices of the components it includes; its license ships in `CraftLook.app/Contents/Resources/Notices/sparkle/LICENSE`. The build signs the framework and its helpers, `Autoupdate` and `Updater.app`, with the hardened runtime.

@@ -47,13 +47,17 @@ PdfCraft works on standard PDF files, which macOS previews by itself.
 2. Unzip it, move **CraftLook** into **Applications** and open it once.
 3. In Finder, select a supported file and press **Space**.
 
-To upgrade, quit the app, replace it in **Applications** with the new one and open it once. CraftLook was called ArtCraft Quick Look up to version 0.2.5: if you have that app, delete it before installing CraftLook, so that the two don't handle the same files. To try it right away, download [River Study, a small VectorCraft project](https://raw.githubusercontent.com/Roccobot/CraftLook/main/examples/river-study.vectorcraft) and keep its `.vectorcraft` extension.
+CraftLook updates itself (see [Updates](#updates)). It was called ArtCraft Quick Look up to version 0.2.5: if you have that app, delete it before installing CraftLook, so that the two don't handle the same files. To try it right away, download [River Study, a small VectorCraft project](https://raw.githubusercontent.com/Roccobot/CraftLook/main/examples/river-study.vectorcraft) and keep its `.vectorcraft` extension.
 
 ### First launch
 
 The app is ad hoc signed and not yet notarized by Apple, so macOS may refuse to open it the first time. If it does, go to **System Settings**, **Privacy & Security**, and click **Open Anyway**, as [Apple's guide](https://support.apple.com/en-us/102445) explains. You only need to do this once.
 
 If Finder still shows a generic icon, check that the CraftLook extensions are on in **System Settings**, under **General**, **Login Items & Extensions**, **Quick Look**, and that **Show icon preview** is on in Finder's View Options.
+
+### Updates
+
+CraftLook checks for a new version once a day while it's open, and asks before installing it. To check right away, choose **Check for Updates...** in the CraftLook menu; to stop the daily checks, turn off **Check for updates automatically** in its window. Updates come through [Sparkle](https://sparkle-project.org), and CraftLook installs only those signed with its own EdDSA key.
 
 ### Requirements
 
@@ -71,14 +75,14 @@ macOS uses one Quick Look extension for each file type. If another app also prev
 
 ## Build from source
 
-Use a Mac with Xcode Command Line Tools and Python 3. The preparation script downloads the universal CLI releases listed in [THIRD_PARTY.md](THIRD_PARTY.md), each at its latest version, pre-releases included, checks their SHA-256 digests and preserves their notices.
+Use a Mac with Xcode Command Line Tools and Python 3. The preparation script downloads the universal CLI releases and Sparkle listed in [THIRD_PARTY.md](THIRD_PARTY.md), each at its latest version, pre-releases included, checks their SHA-256 digests and preserves their notices.
 
 ```sh
 python3 scripts/prepare_renderers.py "$PWD/engines"
 ./build.sh "$PWD/build" "$PWD/engines"
 ```
 
-The result is `build/CraftLook.app`. To use previously downloaded upstream ZIPs, pass `--archives /path/to/archives` to the Python script. For a smaller build that reads only embedded previews, run `./build.sh "$PWD/build-embedded"` in a fresh build directory.
+The result is `build/CraftLook.app`. To use previously downloaded upstream ZIPs, pass `--archives /path/to/archives` to the Python script. For a smaller build that reads only embedded previews and has no updates, run `./build.sh "$PWD/build-embedded"` in a fresh build directory.
 
 After building, run the document-reader checks with these commands.
 
@@ -101,7 +105,7 @@ The service check sends the same files to the app's renderer service, in its san
 Tests/service_check.sh "build/CraftLook.app" build/samples/* examples/river-study.vectorcraft
 ```
 
-Every part of the app is signed with the hardened runtime, ad hoc by default. A release is signed with a Developer ID Application identity, notarized by Apple, stapled and packaged with its SHA-256 checksums. The notary credentials are a keychain profile saved once with `xcrun notarytool store-credentials craftlook-notary`.
+Every part of the app is signed with the hardened runtime, ad hoc by default. The release script also makes the source archive, the SHA-256 checksums and the Sparkle appcast, with the update signed by the EdDSA key of the `craftlook` keychain account. With a Developer ID Application identity it signs with that, has Apple notarize the app and staples the ticket; the notary credentials are a keychain profile saved once with `xcrun notarytool store-credentials craftlook-notary`.
 
 ```sh
 CRAFTLOOK_SIGN_ID="Developer ID Application: NAME (TEAM)" scripts/release.sh "$PWD/release" "$PWD/engines"

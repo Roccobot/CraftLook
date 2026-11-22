@@ -47,13 +47,17 @@ PdfCraft lavora sui normali file PDF, che macOS mostra da sé.
 2. Estrai l'archivio, sposta **CraftLook** in **Applicazioni** e aprila una volta.
 3. Nel Finder seleziona un file compatibile e premi **Spazio**.
 
-Per aggiornare, chiudi l'app, sostituiscila in **Applicazioni** con quella nuova e aprila una volta. Fino alla versione 0.2.5 CraftLook si chiamava ArtCraft Quick Look: se hai quell'app, cancellala prima di installare CraftLook, perché le due non gestiscano gli stessi file. Per provarla subito, scarica [River Study, un piccolo progetto VectorCraft](https://raw.githubusercontent.com/Roccobot/CraftLook/main/examples/river-study.vectorcraft) e tieni l'estensione `.vectorcraft`.
+CraftLook si aggiorna da sé (vedi [Aggiornamenti](#aggiornamenti)). Fino alla versione 0.2.5 si chiamava ArtCraft Quick Look: se hai quell'app, cancellala prima di installare CraftLook, perché le due non gestiscano gli stessi file. Per provarla subito, scarica [River Study, un piccolo progetto VectorCraft](https://raw.githubusercontent.com/Roccobot/CraftLook/main/examples/river-study.vectorcraft) e tieni l'estensione `.vectorcraft`.
 
 ### Primo avvio
 
 L'app ha una firma ad hoc e non è ancora notarizzata da Apple, quindi la prima volta macOS può rifiutarsi di aprirla. In quel caso vai nelle **Impostazioni di Sistema**, in **Privacy e sicurezza**, e fai clic su **Apri comunque**, come spiega la [guida Apple](https://support.apple.com/it-it/102445). Basta farlo una volta.
 
 Se il Finder mostra ancora un'icona generica, controlla che le estensioni di CraftLook siano attive nelle **Impostazioni di Sistema**, in **Generali**, **Elementi login ed estensioni**, **Quick Look**, e che **Mostra anteprima icona** sia attivo nelle opzioni Vista del Finder.
+
+### Aggiornamenti
+
+CraftLook cerca una versione nuova una volta al giorno mentre è aperta, e chiede prima di installarla. Per controllare subito, scegli **Check for Updates...** nel menu CraftLook; per fermare i controlli quotidiani, disattiva **Check for updates automatically** nella sua finestra. Gli aggiornamenti arrivano con [Sparkle](https://sparkle-project.org), e CraftLook installa solo quelli firmati con la sua chiave EdDSA.
 
 ### Requisiti
 
@@ -71,14 +75,14 @@ macOS usa una sola estensione Quick Look per ogni tipo di file. Se anche un'altr
 
 ## Build e controlli
 
-Serve un Mac con gli strumenti a riga di comando di Xcode e Python 3. Lo script di preparazione scarica le release universali delle CLI elencate in [THIRD_PARTY.md](THIRD_PARTY.md), ognuna all'ultima versione, pre-release comprese, ne controlla gli SHA-256 e ne conserva gli avvisi.
+Serve un Mac con gli strumenti a riga di comando di Xcode e Python 3. Lo script di preparazione scarica le release universali delle CLI e di Sparkle elencate in [THIRD_PARTY.md](THIRD_PARTY.md), ognuna all'ultima versione, pre-release comprese, ne controlla gli SHA-256 e ne conserva gli avvisi.
 
 ```sh
 python3 scripts/prepare_renderers.py "$PWD/engines"
 ./build.sh "$PWD/build" "$PWD/engines"
 ```
 
-Il risultato è `build/CraftLook.app`. Per usare gli ZIP originali già scaricati, passa `--archives /percorso/degli/archivi` allo script Python. Per una build più piccola, che legge solo le anteprime incorporate, esegui `./build.sh "$PWD/build-embedded"` in una cartella di build nuova.
+Il risultato è `build/CraftLook.app`. Per usare gli ZIP originali già scaricati, passa `--archives /percorso/degli/archivi` allo script Python. Per una build più piccola, che legge solo le anteprime incorporate e non si aggiorna, esegui `./build.sh "$PWD/build-embedded"` in una cartella di build nuova.
 
 Dopo la build, esegui i controlli della lettura dei documenti con questi comandi.
 
@@ -101,7 +105,7 @@ Il controllo del servizio manda gli stessi file al servizio dei renderer dell'ap
 Tests/service_check.sh "build/CraftLook.app" build/samples/* examples/river-study.vectorcraft
 ```
 
-Ogni parte dell'app è firmata col runtime protetto, ad hoc se non si indica altro. Una release è firmata con un'identità Developer ID Application, notarizzata da Apple, graffettata e impacchettata con i suoi checksum SHA-256. Le credenziali di notarizzazione sono un profilo del portachiavi salvato una volta con `xcrun notarytool store-credentials craftlook-notary`.
+Ogni parte dell'app è firmata col runtime protetto, ad hoc se non si indica altro. Lo script di release prepara anche l'archivio dei sorgenti, i checksum SHA-256 e l'appcast di Sparkle, con l'aggiornamento firmato dalla chiave EdDSA dell'account `craftlook` del portachiavi. Con un'identità Developer ID Application firma con quella, fa notarizzare l'app da Apple e ne graffetta il ticket; le credenziali di notarizzazione sono un profilo del portachiavi salvato una volta con `xcrun notarytool store-credentials craftlook-notary`.
 
 ```sh
 CRAFTLOOK_SIGN_ID="Developer ID Application: NOME (TEAM)" scripts/release.sh "$PWD/release" "$PWD/engines"

@@ -36,7 +36,7 @@
 ## 🌿 Ramo e versione
 
 - **Ramo principale `main`.**
-- **L'app si chiama CraftLook dalla 0.3.1**, la prima release col nome nuovo (scelta dell'utente del 2026-11-22): `CraftLook.app`,
+- **L'app si chiama CraftLook dalla 0.4.0**, la prima release col nome nuovo (scelta dell'utente del 2026-11-22): `CraftLook.app`,
   identificativi `com.roccobot.craftlook`, `.preview`, `.thumbnail` e `.thumbnail.render`, archivi
   `craftlook-<versione>-macos.zip`, `-source.zip` e `-SHA256.txt`. Fino alla 0.2.5 era 'ArtCraft
   Quick Look', con gli identificativi `org.artcraftquicklook.local` e il repo `artcraft-quick-look`,
@@ -46,19 +46,45 @@
 - **Versione SemVer**, con la fonte unica in `configure.py`: `CFBundleShortVersionString` è la
   versione mostrata, `CFBundleVersion` il numero di build, che sale di uno a ogni versione
   pubblicata, non a ogni build provata. Al 2026-11-22 l'ultima pubblicata è `0.2.5` (`9`), e
-  `configure.py` porta `0.3.1` (`11`), la versione in preparazione: la `0.3.0` (`10`) l'ha
-  provata solo l'utente sul suo Mac, e le sue novità sono nelle note della `0.3.1`
-  (`docs/release-notes/0.3.1.md`), una per versione pubblicata.
+  `configure.py` porta `0.4.0` (`12`), la versione in preparazione: la `0.3.0` (`10`) e la `0.3.1`
+  (`11`) le ha provate solo l'utente sul suo Mac, e le loro novità sono nelle note della `0.4.0`
+  (`docs/release-notes/0.4.0.md`), una per versione pubblicata.
 - **Una versione pubblicata è una release di GitHub** di questo repo, con l'app costruita da
-  `scripts/release.sh`: `build.sh` con l'identità Developer ID Application di
-  `CRAFTLOOK_SIGN_ID`, la notarizzazione col profilo `craftlook-notary` di `notarytool`, la
-  graffetta (`stapler`) e gli archivi con gli SHA-256. Senza identità `build.sh` firma ad hoc,
-  per le prove; finché una release non è notarizzata lo dice il README.
+  `scripts/release.sh`: `build.sh`, gli archivi con gli SHA-256 e l'appcast di Sparkle
+  (§ '🔄 Aggiornamenti'); con l'identità Developer ID Application di `CRAFTLOOK_SIGN_ID` anche la
+  notarizzazione col profilo `craftlook-notary` di `notarytool` e la graffetta (`stapler`). Senza
+  identità firma ad hoc; finché una release non è notarizzata lo dicono il README e le note.
 - **Ogni parte dell'app ha il runtime protetto** (`--options runtime`), firmata dall'interno verso
   l'esterno: renderer, servizio, estensioni, app. I renderer tengono gli entitlement della firma
   originale (`--preserve-metadata=entitlements`): solo SolidCraft ne ha uno,
   `com.apple.security.cs.allow-unsigned-executable-memory`, perché il suo wasmtime compila
   WebAssembly; servizio ed estensioni tengono la sandbox.
+
+## 🔄 Aggiornamenti
+
+- **Sparkle 2, dalla 0.4.0** (scelta dell'utente del 2026-11-22): `Sparkle.framework` universale in
+  `Contents/Frameworks`, dal pacchetto ufficiale che `scripts/prepare_renderers.py` scarica con
+  lo SHA-256, collegato dall'app (`Sources/Host.swift`); senza Sparkle la build non si aggiorna.
+- **L'app non è in sandbox**, quindi i servizi XPC di Sparkle (`Installer.xpc`,
+  `Downloader.xpc`) restano fuori, come dice la guida di Sparkle, e servono solo `Autoupdate` e
+  `Updater.app`, firmati da `build.sh` dall'interno verso l'esterno col runtime protetto.
+- **Un controllo al giorno mentre l'app è aperta, e una domanda prima di installare**
+  (`SUEnableAutomaticChecks`, `SUScheduledCheckInterval` 86400, `SUAutomaticallyUpdate` spento, in
+  `configure.py`); la voce *Check for Updates...* del menu e la casella della finestra, in inglese.
+- **L'appcast è un allegato di ogni release**: `SUFeedURL` è
+  `https://github.com/Roccobot/CraftLook/releases/latest/download/appcast.xml`. Il repo è pubblico,
+  e così l'appcast arriva insieme al suo ZIP, senza commit su `main` né sull'hub; `scripts/appcast.py`
+  lo riscrive a ogni release con la versione nuova in testa e le voci dell'appcast pubblicato.
+  Una release segnata come pre-release non è `latest`, quindi non arriva agli aggiornamenti.
+- ⚠️⚠️ **La chiave EdDSA è solo di CraftLook**: account `craftlook` del Portachiavi di Rocco, creata
+  il 2026-11-22 con `generate_keys --account craftlook`; la metà pubblica è `SUPublicEDKey` in
+  `configure.py`. La chiave privata non si legge, non si stampa, non si esporta e non entra mai nel
+  repo né in chat; la chiave di Aomidori non si tocca. `release.sh` firma lo ZIP con `sign_update
+  --account craftlook`, e la prima volta macOS chiede a Rocco di lasciarglielo fare.
+- **Ad hoc oggi, Developer ID domani**: Sparkle accetta un aggiornamento se la firma EdDSA è valida
+  con la stessa chiave, anche quando cambia la firma del codice, quindi una copia ad hoc si aggiorna
+  a una notarizzata. La chiave EdDSA invece non cambia mai, o le copie installate rifiutano gli
+  aggiornamenti.
 
 ## 🧰 Build e prove
 
@@ -77,8 +103,8 @@
 
 ## 🔗 Le dipendenze
 
-- **I renderer sono le dipendenze del progetto**: la versione in uso e lo SHA-256 del loro
-  archivio vivono in `RENDERERS` di `scripts/prepare_renderers.py`, il registro è
+- **I renderer e Sparkle sono le dipendenze del progetto**: la versione in uso e lo SHA-256 del
+  loro archivio vivono in `RENDERERS` e `SPARKLE` di `scripts/prepare_renderers.py`, il registro è
   `docs/Dependencies.json`, e il flusso `dependencies.yml` li confronta ogni lunedì con l'ultima
   release, aprendo la issue `Dipendenze da leggere` se ce n'è una nuova (`rules/Roccobot.md`
   § '🔗 Le dipendenze si seguono: ogni versione nuova si legge').
