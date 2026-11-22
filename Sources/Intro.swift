@@ -9,7 +9,8 @@ import Sparkle
 ///
 /// The layout follows Liquid Glass (Apple HIG, Materials): the content sits on the window's
 /// standard material, edge to edge under a transparent title bar, and only the controls float on
-/// glass, grouped in panels with corners concentric to the buttons inside them. Before macOS 26 the
+/// glass, grouped in panels with corners concentric to the buttons inside them. The buttons are
+/// the standard push buttons, regular size, drawn by the system on every version. Before macOS 26 the
 /// panels fall back to a standard material (NSVisualEffectView) with the same shape.
 final class Intro: NSObject {
     /// The text column, and the margin that keeps every text and control off the window's edges.
@@ -19,8 +20,8 @@ final class Intro: NSObject {
     /// text and controls inside them still at `margin`.
     static let edge: CGFloat = 24
     static var padding: CGFloat { margin - edge }
-    /// Concentric corners: a panel's radius is its padding plus the radius of the capsule buttons it
-    /// holds (half the height of a regular push button).
+    /// Concentric corners: a panel's radius is its padding plus the corner radius of the standard
+    /// push buttons it holds, about half their height on macOS 26 and later.
     static let controlRadius: CGFloat = 12
     static var panelRadius: CGFloat { padding + controlRadius }
     /// Room for the transparent title bar, which the content runs under.
@@ -94,13 +95,6 @@ final class Intro: NSObject {
         label.preferredMaxLayoutWidth = Self.column
         label.widthAnchor.constraint(equalToConstant: Self.column).isActive = true
         return label
-    }
-
-    /// A push button in the capsule shape of Liquid Glass, where the system has it.
-    private func button(_ title: String, target: AnyObject?, action: Selector) -> NSButton {
-        let button = NSButton(title: title, target: target, action: action)
-        if #available(macOS 26.0, *) { button.borderShape = .capsule }
-        return button
     }
 
     private func link(_ title: String, url: URL) -> NSButton {
@@ -210,12 +204,12 @@ final class Intro: NSObject {
         if let updates {
             let automatic = NSButton(checkboxWithTitle: "Check for updates automatically", target: nil, action: nil)
             automatic.bind(.value, to: updates.updater, withKeyPath: #keyPath(SPUUpdater.automaticallyChecksForUpdates))
-            let check = button("Check for Updates...", target: updates,
-                               action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)))
+            let check = NSButton(title: "Check for Updates...", target: updates,
+                                 action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)))
             panels.append(panel([automatic, check], spacing: 10))
         }
         #endif
-        let settings = button("Open System Preferences", target: self, action: #selector(openExtensions(_:)))
+        let settings = NSButton(title: "Open System Preferences", target: self, action: #selector(openExtensions(_:)))
         let how = paragraph("Under Extensions, open Quick Look and turn CraftLook on.\nTurn it off to go back to the standard macOS previews.",
                             size: NSFont.smallSystemFontSize, color: .secondaryLabelColor)
         panels.append(panel([settings, how], spacing: 10))

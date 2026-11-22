@@ -72,10 +72,13 @@
   il contenuto sta sul materiale della finestra, da bordo a bordo sotto una barra del titolo
   trasparente (`Intro.style`), e il vetro è solo dei controlli, raccolti in due pannelli
   (`NSGlassEffectView` dentro un `NSGlassEffectContainerView`, da macOS 26) a 24 punti dai bordi,
-  con l'angolo concentrico ai pulsanti a capsula: 16 punti di margine interno più 12 di raggio del
+  con l'angolo concentrico ai pulsanti: 16 punti di margine interno più 12 di raggio del
   pulsante. Prima di macOS 26 i pannelli usano un materiale standard (`NSVisualEffectView`,
   `.popover`) con la stessa forma. Le icone di GitHub e Telegram restano semplici: la guida vuole
   il vetro solo sui controlli più importanti.
+- **I pulsanti sono quelli standard di AppKit** (`NSButton` a pressione, forma e misura di serie):
+  li disegna il sistema, col vetro da macOS 26 e come sempre prima (l'utente li ha trovati diversi da
+  quelli di sistema con la forma a capsula forzata, 2026-11-22).
 - **Lo snapshot fuori dallo schermo non ha uno sfondo dietro la finestra**, quindi il vetro vi appare
   senza rifrazione: la resa vera si vede solo con la finestra aperta.
 - ***Open System Preferences*** **è l'etichetta scelta dall'utente** (2026-11-22), anche se da macOS 13
