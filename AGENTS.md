@@ -1,4 +1,4 @@
-# AGENTS.md: le regole di `Roccobot/artcraft-quick-look`
+# AGENTS.md: le regole di `Roccobot/CraftLook`
 
 > **Cos'è questo file.** Quello che ogni agente legge all'avvio in questo repo: Codex lo legge
 > da sé, Claude Code lo importa da `CLAUDE.md`. Contiene due blocchi: il
@@ -273,7 +273,7 @@ Un file più specifico vince **dove parla**, e il suo silenzio non è una deroga
 
 <!-- core:end -->
 
-## 🧭 Il nucleo di `artcraft-quick-look`
+## 🧭 Il nucleo di `CraftLook`
 
 - **Che cos'è**: ArtCraft Quick Look, l'app per macOS 13 o successivi, su Mac Intel e Apple
   silicon, che mostra nel Finder miniature e anteprime statiche dei progetti della suite ArtCraft

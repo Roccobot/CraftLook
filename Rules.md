@@ -1,4 +1,4 @@
-# Rules.md: regole del progetto ArtCraft Quick Look (repo `Roccobot/artcraft-quick-look`)
+# Rules.md: regole del progetto ArtCraft Quick Look (repo `Roccobot/CraftLook`)
 
 > **Cos'è questo file.** Il testo completo delle regole di **ArtCraft Quick Look**. Vale per
 > **tutti gli agenti**: il nucleo, cioè ogni regola in una riga, vive in `AGENTS.md`, e questo file
@@ -22,6 +22,9 @@
 ## 🌿 Ramo e versione
 
 - **Ramo principale `main`.**
+- **Il repo si chiamava `artcraft-quick-look` fino al 2026-11-22**, quando l'utente l'ha rinominato
+  `CraftLook`; l'app resta 'ArtCraft Quick Look'. GitHub reindirizza i link e i cloni col nome
+  vecchio, e l'archivio della release 0.2.5 (`artcraft-quick-look-0.2.5-macos.zip`) lo conserva.
 - **Versione SemVer**, con la fonte unica in `configure.py`: `CFBundleShortVersionString` è la
   versione mostrata, `CFBundleVersion` il numero di build, che sale di uno a ogni versione
   pubblicata. Al 2026-11-22 sono `0.2.5` e `9`.

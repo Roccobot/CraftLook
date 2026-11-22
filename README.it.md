@@ -1,6 +1,6 @@
 # ArtCraft Quick Look
 
-[English README](README.md) · [Scarica la release per macOS](https://github.com/Roccobot/artcraft-quick-look/releases/latest)
+[English README](README.md) · [Scarica la release per macOS](https://github.com/Roccobot/CraftLook/releases/latest)
 
 Il codice, gli script e i test sono distribuiti con [licenza MIT](LICENSE). Per il martin pescatore valgono [condizioni separate](ARTWORK.md). I renderer mantengono le [licenze e gli avvisi dei progetti originali](THIRD_PARTY.md).
 

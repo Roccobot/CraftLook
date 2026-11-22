@@ -1,4 +1,4 @@
-# CLAUDE.md: le regole di `artcraft-quick-look` per Claude
+# CLAUDE.md: le regole di `CraftLook` per Claude
 
 @AGENTS.md
 

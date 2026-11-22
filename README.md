@@ -4,15 +4,15 @@
 
 Select an ArtCraft project in Finder and press **Space** to see what's inside. Select several revisions and use the arrow keys to flip through them. ArtCraft Quick Look adds both the thumbnails in your folders and the larger, static previews.
 
-**[Download for macOS](https://github.com/Roccobot/artcraft-quick-look/releases/latest)** · [Guida in italiano](README.it.md)
+**[Download for macOS](https://github.com/Roccobot/CraftLook/releases/latest)** · [Guida in italiano](README.it.md)
 
 ## Try it
 
-1. Download `artcraft-quick-look-0.2.5-macos.zip` from the [0.2.5 release](https://github.com/Roccobot/artcraft-quick-look/releases/tag/v0.2.5). It includes the four renderers and supports Intel and Apple silicon Macs running macOS 13 or later.
+1. Download `artcraft-quick-look-0.2.5-macos.zip` from the [0.2.5 release](https://github.com/Roccobot/CraftLook/releases/tag/v0.2.5). It includes the four renderers and supports Intel and Apple silicon Macs running macOS 13 or later.
 2. Unzip the download, move **ArtCraft Quick Look** into **Applications**, and open it once. This build is ad hoc signed and hasn't been notarized by Apple. Gatekeeper may ask for approval on the first launch. [Apple's guide](https://support.apple.com/en-us/102445)
 3. In Finder, select a supported file and press **Space**. If Finder shows only a generic icon, check that the ArtCraft Quick Look extensions are enabled in System Settings and that **Show icon preview** is on in Finder's View Options.
 
-You can try it with [River Study, a small VectorCraft project](https://raw.githubusercontent.com/Roccobot/artcraft-quick-look/main/examples/river-study.vectorcraft). Save the file with its `.vectorcraft` extension. The image below is the thumbnail macOS generated from that file.
+You can try it with [River Study, a small VectorCraft project](https://raw.githubusercontent.com/Roccobot/CraftLook/main/examples/river-study.vectorcraft). Save the file with its `.vectorcraft` extension. The image below is the thumbnail macOS generated from that file.
 
 ![Actual Finder thumbnail of River Study, a print showing the setting sun over a river](docs/images/river-study.png)
 
@@ -49,7 +49,7 @@ python3 Tests/check.py build/rendercheck
 
 ## Feedback and credits
 
-For a blank or incorrect preview, include the extension, the macOS version, the ArtCraft app version that saved the file and, if possible, a small project you can share. [Report a preview issue](https://github.com/Roccobot/artcraft-quick-look/issues/new?template=preview.yml)
+For a blank or incorrect preview, include the extension, the macOS version, the ArtCraft app version that saved the file and, if possible, a small project you can share. [Report a preview issue](https://github.com/Roccobot/CraftLook/issues/new?template=preview.yml)
 
 ArtCraft Quick Look is an independent community project. The renderers come from the ArtCraft team and contributors. [Upstream releases and credits](THIRD_PARTY.md)
 
