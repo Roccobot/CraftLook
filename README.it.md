@@ -51,7 +51,7 @@ CraftLook si aggiorna da sé (vedi [Aggiornamenti](#aggiornamenti)). Fino alla v
 
 ### Primo avvio
 
-CraftLook è firmata con un Developer ID e notarizzata da Apple: Apple l'ha controllata per escludere software dannoso, quindi Gatekeeper la apre senza avvisi, come ogni altra app scaricata. La sua finestra ha un pulsante, **Open System Preferences**, che porta dritto alle estensioni di Quick Look, dove attivare o disattivare CraftLook.
+CraftLook è firmata con un Developer ID e notarizzata da Apple: Apple l'ha controllata per escludere software dannoso, quindi Gatekeeper la apre senza avvisi, come ogni altra app scaricata. La sua finestra ha un pulsante, **Open System Settings**, che porta dritto alle estensioni di Quick Look, dove attivare o disattivare CraftLook.
 
 Se il Finder mostra ancora un'icona generica, controlla che le estensioni di CraftLook siano attive nelle **Impostazioni di Sistema**, in **Generali**, **Elementi login ed estensioni**, **Quick Look**, e che **Mostra anteprima icona** sia attivo nelle opzioni Vista del Finder.
 

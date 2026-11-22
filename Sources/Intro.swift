@@ -209,7 +209,7 @@ final class Intro: NSObject {
             panels.append(panel([automatic, check], spacing: 10))
         }
         #endif
-        let settings = NSButton(title: "Open System Preferences", target: self, action: #selector(openExtensions(_:)))
+        let settings = NSButton(title: "Open System Settings", target: self, action: #selector(openExtensions(_:)))
         let how = paragraph("Under Extensions, open Quick Look and turn CraftLook on.\nTurn it off to go back to the standard macOS previews.",
                             size: NSFont.smallSystemFontSize, color: .secondaryLabelColor)
         panels.append(panel([settings, how], spacing: 10))

@@ -45,7 +45,7 @@
   'ArtCraft Quick Look', perché le due non mostrino gli stessi file.
 - **Versione SemVer**, con la fonte unica in `configure.py`: `CFBundleShortVersionString` è la
   versione mostrata, `CFBundleVersion` il numero di build, che sale di uno a ogni versione
-  pubblicata, non a ogni build provata. Al 2026-11-22 l'ultima pubblicata è `0.4.1` (`13`), quella
+  pubblicata, non a ogni build provata. Al 2026-11-22 l'ultima pubblicata è `0.4.2` (`14`), quella
   che porta `configure.py`; la `0.3.0` (`10`) e la `0.3.1`
   (`11`) le ha provate solo l'utente sul suo Mac, e le loro novità sono nelle note della `0.4.0`.
   Le note sono una per versione pubblicata, in `docs/release-notes/`.
@@ -64,7 +64,7 @@
 ## 🪟 La finestra
 
 - **Una finestra sola, di introduzione e impostazioni** (`Sources/Intro.swift`, in inglese): cosa fa
-  CraftLook, gli aggiornamenti, il pulsante *Open System Preferences* e la firma. Testi, pulsanti e
+  CraftLook, gli aggiornamenti, il pulsante *Open System Settings* e la firma. Testi, pulsanti e
   immagini stanno a 40 punti dai bordi, in una colonna di testo di 400 (difetto segnalato
   dall'utente il 2026-11-22); `Tests/WindowSnapshot.swift` la disegna fuori dallo schermo, nei due
   temi, e fallisce se uno di loro oltrepassa i margini.
@@ -81,11 +81,15 @@
   quelli di sistema con la forma a capsula forzata, 2026-11-22).
 - **Lo snapshot fuori dallo schermo non ha uno sfondo dietro la finestra**, quindi il vetro vi appare
   senza rifrazione: la resa vera si vede solo con la finestra aperta.
-- ***Open System Preferences*** **è l'etichetta scelta dall'utente** (2026-11-22), anche se da macOS 13
-  l'app si chiama Impostazioni di Sistema. Apre
-  `x-apple.systempreferences:com.apple.ExtensionsPreferences`: il pannello Estensioni fino a macOS 14,
+- ***Open System Settings*** **apre le estensioni di Quick Look**:
+  `x-apple.systempreferences:com.apple.ExtensionsPreferences`, il pannello Estensioni fino a macOS 14,
   e da macOS 15 Elementi login ed estensioni, che risponde allo stesso nome (`url_alias` del pannello,
   letto su macOS 27.2.1); se il nome non risponde più, si apre Impostazioni di Sistema.
+- **I nomi delle app e dei pannelli di Apple sono quelli dei sistemi che CraftLook supporta**: da
+  macOS 13 l'app è System Settings, in italiano Impostazioni di Sistema, e System Preferences era il
+  nome di macOS 12. La 0.4.1 diceva ancora *Open System Preferences*, corretto nella 0.4.2 su
+  richiesta dell'utente (2026-11-22): un nome superato va fatto notare all'utente, anche quando è lui
+  a proporlo.
 - **In calce la firma dell'utente** (sue richieste del 2026-11-22): *Made with* col cuore U+2665 *by
   Rocco 'Roccobot' Casadei* e il suo marchio, poi `www.roccobot.me` e le icone di GitHub e Telegram. Il
   marchio è `Resources/tian.svg`, copiato byte per byte da `design/assets/mark/tian-turchese.svg`

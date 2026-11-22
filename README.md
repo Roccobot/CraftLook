@@ -51,7 +51,7 @@ CraftLook updates itself (see [Updates](#updates)). It was called ArtCraft Quick
 
 ### First launch
 
-CraftLook is signed with a Developer ID and notarized by Apple: Apple has checked it for malicious software, so Gatekeeper opens it without warnings, like any other app you download. Its window has an **Open System Preferences** button that goes straight to the Quick Look extensions, where you can turn CraftLook on or off.
+CraftLook is signed with a Developer ID and notarized by Apple: Apple has checked it for malicious software, so Gatekeeper opens it without warnings, like any other app you download. Its window has an **Open System Settings** button that goes straight to the Quick Look extensions, where you can turn CraftLook on or off.
 
 If Finder still shows a generic icon, check that the CraftLook extensions are on in **System Settings**, under **General**, **Login Items & Extensions**, **Quick Look**, and that **Show icon preview** is on in Finder's View Options.
 
