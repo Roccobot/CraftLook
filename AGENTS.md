@@ -287,7 +287,10 @@ Un file più specifico vince **dove parla**, e il suo silenzio non è una deroga
   e versione').
 - **Build e prove solo su macOS, con gli strumenti di Xcode**: `scripts/prepare_renderers.py`,
   `build.sh`, `Tests/check.py`, `Tests/samples.py` con `Tests/HeadlessCheck.swift` e
-  `Tests/service_check.sh` (`Rules.md` § '🧰 Build e prove').
+  `Tests/service_check.sh`, e `Tests/WindowSnapshot.swift` per la finestra (`Rules.md` § '🧰 Build
+  e prove').
+- **Una finestra sola, con la firma dell'utente in calce e il suo marchio, che non si modifica mai**
+  (`Resources/tian.svg`); testo sempre dentro i margini (`Rules.md` § '🪟 La finestra').
 - **Le dipendenze sono i renderer e Sparkle**, con versione e SHA-256 in `scripts/prepare_renderers.py`
   e il registro in `docs/Dependencies.json`, che il flusso `dependencies.yml` controlla ogni lunedì;
   ognuno all'ultima versione, anche pre-release o beta, senza le build notturne (`Rules.md` § '🔗 Le
@@ -297,7 +300,7 @@ Un file più specifico vince **dove parla**, e il suo silenzio non è una deroga
   repo né in chat (`Rules.md` § '🔄 Aggiornamenti').
 - **I renderer sono nell'app una volta sola**, nel servizio XPC dell'estensione delle miniature, che
   mette in coda le richieste (`Rules.md` § '🧭 Che cos'è').
-- **Il martin pescatore non si tocca**: l'icona e le sue immagini sono fuori dalla licenza MIT del
+- **Il martin pescatore e il marchio di Roccobot non si toccano**: l'icona, le sue immagini e il marchio sono fuori dalla licenza MIT del
   codice (`ARTWORK.md`), e si usano così come sono; i renderer tengono le licenze dei progetti
   originali (`THIRD_PARTY.md`) (`Rules.md` § '⚖️ Licenze e illustrazione').
 - **Il README è in due lingue**, `README.md` in inglese e `README.it.md` in italiano: una modifica

@@ -28,12 +28,13 @@ def write(path, data):
 def info(name, kind, identifier):
     return dict(CFBundleExecutable=name, CFBundleIdentifier=identifier, CFBundleName=name,
                 CFBundleDisplayName='CraftLook', CFBundlePackageType=kind,
-                CFBundleVersion='12', CFBundleShortVersionString='0.4.0',
+                CFBundleVersion='13', CFBundleShortVersionString='0.4.1',
                 CFBundleInfoDictionaryVersion='6.0', LSMinimumSystemVersion='13.0',
                 CFBundleDevelopmentRegion='en', CFBundleSupportedPlatforms=['MacOSX'])
 
 host = info('CraftLook', 'APPL', bundle)
 host['CFBundleIconFile'] = 'CraftLook.icns'
+host['NSHumanReadableCopyright'] = '© 2026 Rocco Casadei, a.k.a. Roccobot'
 # Sparkle (Rules.md, 'Aggiornamenti'): the appcast published with each release, the public half of
 # the EdDSA key that signs the update archives (account craftlook of Rocco's keychain), a check a
 # day while the app runs, and a question before installing. The app is not sandboxed, so Sparkle's

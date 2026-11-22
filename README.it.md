@@ -51,19 +51,23 @@ CraftLook si aggiorna da sé (vedi [Aggiornamenti](#aggiornamenti)). Fino alla v
 
 ### Primo avvio
 
-CraftLook è firmata con un Developer ID e notarizzata da Apple, quindi macOS la apre come ogni altra app scaricata. La sua finestra dice dove attivare le estensioni.
+CraftLook è firmata con un Developer ID e notarizzata da Apple: Apple l'ha controllata per escludere software dannoso, quindi Gatekeeper la apre senza avvisi, come ogni altra app scaricata. La sua finestra ha un pulsante, **Open System Preferences**, che porta dritto alle estensioni di Quick Look, dove attivare o disattivare CraftLook.
 
 Se il Finder mostra ancora un'icona generica, controlla che le estensioni di CraftLook siano attive nelle **Impostazioni di Sistema**, in **Generali**, **Elementi login ed estensioni**, **Quick Look**, e che **Mostra anteprima icona** sia attivo nelle opzioni Vista del Finder.
 
 ### Aggiornamenti
 
-CraftLook cerca una versione nuova una volta al giorno mentre è aperta, e chiede prima di installarla. Per controllare subito, scegli **Check for Updates...** nel menu CraftLook; per fermare i controlli quotidiani, disattiva **Check for updates automatically** nella sua finestra. Gli aggiornamenti arrivano con [Sparkle](https://sparkle-project.org), e CraftLook installa solo quelli firmati con la sua chiave EdDSA.
+Dalla versione 0.4.0 CraftLook cerca una versione nuova una volta al giorno mentre è aperta, e chiede prima di installarla. Per controllare subito, scegli **Check for Updates...** nel menu CraftLook; per fermare i controlli quotidiani, disattiva **Check for updates automatically** nella sua finestra. Gli aggiornamenti arrivano con [Sparkle](https://sparkle-project.org), e CraftLook installa solo quelli firmati con la sua chiave EdDSA.
 
 ### Requisiti
 
 - macOS 13 o successivi, su un Mac Intel o Apple silicon.
-- Circa 1,6 GB di spazio su disco, renderer compresi.
+- Circa 1,6 GB di spazio su disco, renderer compresi (vedi [Perché è così grande](#perché-è-così-grande)).
 - Non serve installare nessuna app ArtCraft: i renderer sono dentro CraftLook. Per i file `.psd` non serve nemmeno Photoshop.
+
+### Perché è così grande
+
+Il download è di circa 720 MB, e l'app occupa circa 1,6 GB una volta estratta. Quasi tutto è dei renderer, che sono otto: FigCraft, DesignCraft, VectorCraft, TextureCraft, SolidCraft, FilmCraft, MaterialCraft ed EffectCraft contengono ognuno il motore di disegno senza interfaccia della sua app, lo stesso che usa l'app, perché CraftLook possa disegnare un progetto al momento, com'è davvero, senza l'app installata. Ognuno è universale, col codice per Intel e per Apple silicon, e vanno da circa 30 MB (MaterialCraft) a circa 540 MB (SolidCraft). Tutto il resto, cioè l'app, le sue estensioni Quick Look, Sparkle e le licenze, occupa circa 7 MB. I renderer sono nell'app una volta sola, in comune fra le due estensioni.
 
 ## Come funziona
 
@@ -105,6 +109,13 @@ Il controllo del servizio manda gli stessi file al servizio dei renderer dell'ap
 Tests/service_check.sh "build/CraftLook.app" build/samples/* examples/river-study.vectorcraft
 ```
 
+La prova della finestra disegna la finestra dell'app fuori dallo schermo, nel tema chiaro e in quello scuro, senza mostrarla, e fallisce se una riga oltrepassa i margini laterali.
+
+```sh
+xcrun swiftc -parse-as-library -F "$PWD/engines/sparkle" -framework Sparkle -Xlinker -rpath -Xlinker "$PWD/engines/sparkle" -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __info_plist -Xlinker build/CraftLook.app/Contents/Info.plist Sources/Intro.swift Tests/WindowSnapshot.swift -o build/windowsnapshot
+build/windowsnapshot build/CraftLook.app/Contents/Resources build/window
+```
+
 Ogni parte dell'app è firmata col runtime protetto, ad hoc se non si indica altro. Lo script di release prepara anche l'archivio dei sorgenti, i checksum SHA-256 e l'appcast di Sparkle, con l'aggiornamento firmato dalla chiave EdDSA dell'account `craftlook` del portachiavi. Con un'identità Developer ID Application firma con quella, fa notarizzare l'app da Apple e ne graffetta il ticket; le credenziali di notarizzazione sono un profilo del portachiavi salvato una volta con `xcrun notarytool store-credentials craftlook-notary`.
 
 ```sh
@@ -128,8 +139,8 @@ Per un'anteprima vuota o sbagliata, indica l'estensione, la versione di macOS, l
 
 ## Riconoscimenti e software di terze parti
 
-CraftLook è un progetto indipendente della comunità. I renderer vengono dal gruppo di ArtCraft, da Tangency Labs per SolidCraft, e dai loro collaboratori, e conservano le licenze e gli avvisi originali. [Release originali e riconoscimenti](THIRD_PARTY.md)
+CraftLook è fatta con amore da Rocco 'Roccobot' Casadei ([www.roccobot.me](https://www.roccobot.me), [GitHub](https://github.com/Roccobot), [Telegram](https://t.me/roccobot)), come progetto indipendente della comunità. I renderer vengono dal gruppo di ArtCraft, da Tangency Labs per SolidCraft, e dai loro collaboratori, e conservano le licenze e gli avvisi originali. [Release originali e riconoscimenti](THIRD_PARTY.md)
 
 ## Licenza
 
-Il codice Swift, gli script di build e i test sono distribuiti con [licenza MIT](LICENSE). Per il martin pescatore valgono [condizioni separate](ARTWORK.md).
+Il codice Swift, gli script di build e i test sono distribuiti con [licenza MIT](LICENSE). Per il martin pescatore e il marchio di Roccobot valgono [condizioni separate](ARTWORK.md).

@@ -51,19 +51,23 @@ CraftLook updates itself (see [Updates](#updates)). It was called ArtCraft Quick
 
 ### First launch
 
-CraftLook is signed with a Developer ID and notarized by Apple, so macOS opens it like any other downloaded app. Its window shows where to turn the extensions on.
+CraftLook is signed with a Developer ID and notarized by Apple: Apple has checked it for malicious software, so Gatekeeper opens it without warnings, like any other app you download. Its window has an **Open System Preferences** button that goes straight to the Quick Look extensions, where you can turn CraftLook on or off.
 
 If Finder still shows a generic icon, check that the CraftLook extensions are on in **System Settings**, under **General**, **Login Items & Extensions**, **Quick Look**, and that **Show icon preview** is on in Finder's View Options.
 
 ### Updates
 
-CraftLook checks for a new version once a day while it's open, and asks before installing it. To check right away, choose **Check for Updates...** in the CraftLook menu; to stop the daily checks, turn off **Check for updates automatically** in its window. Updates come through [Sparkle](https://sparkle-project.org), and CraftLook installs only those signed with its own EdDSA key.
+Since version 0.4.0, CraftLook checks for a new version once a day while it's open, and asks before installing it. To check right away, choose **Check for Updates...** in the CraftLook menu; to stop the daily checks, turn off **Check for updates automatically** in its window. Updates come through [Sparkle](https://sparkle-project.org), and CraftLook installs only those signed with its own EdDSA key.
 
 ### Requirements
 
 - macOS 13 or later, on an Intel or Apple silicon Mac.
-- About 1.6 GB of disk space, renderers included.
+- About 1.6 GB of disk space, renderers included (see [Why it's so large](#why-its-so-large)).
 - No ArtCraft app has to be installed: the renderers ship inside CraftLook. Photoshop isn't needed for `.psd` files either.
+
+### Why it's so large
+
+The download is about 720 MB, and the app takes about 1.6 GB once unzipped. Almost all of it is the eight renderers: FigCraft, DesignCraft, VectorCraft, TextureCraft, SolidCraft, FilmCraft, MaterialCraft and EffectCraft each ship the headless drawing engine of their app, the same one the app uses, so CraftLook can draw a project on the fly, exactly as it looks, without the app installed. Each one is universal, with code for both Intel and Apple silicon, and they range from about 30 MB (MaterialCraft) to about 540 MB (SolidCraft). Everything else, the app itself, its Quick Look extensions, Sparkle and the licenses, takes about 7 MB. The renderers are in the app only once, shared by the two extensions.
 
 ## How it works
 
@@ -105,6 +109,13 @@ The service check sends the same files to the app's renderer service, in its san
 Tests/service_check.sh "build/CraftLook.app" build/samples/* examples/river-study.vectorcraft
 ```
 
+The window check draws the app window offscreen, in the light and the dark theme, without showing it, and fails if a row crosses the side margins.
+
+```sh
+xcrun swiftc -parse-as-library -F "$PWD/engines/sparkle" -framework Sparkle -Xlinker -rpath -Xlinker "$PWD/engines/sparkle" -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __info_plist -Xlinker build/CraftLook.app/Contents/Info.plist Sources/Intro.swift Tests/WindowSnapshot.swift -o build/windowsnapshot
+build/windowsnapshot build/CraftLook.app/Contents/Resources build/window
+```
+
 Every part of the app is signed with the hardened runtime, ad hoc by default. The release script also makes the source archive, the SHA-256 checksums and the Sparkle appcast, with the update signed by the EdDSA key of the `craftlook` keychain account. With a Developer ID Application identity it signs with that, has Apple notarize the app and staples the ticket; the notary credentials are a keychain profile saved once with `xcrun notarytool store-credentials craftlook-notary`.
 
 ```sh
@@ -128,8 +139,8 @@ For a blank or incorrect preview, include the extension, the macOS version, the 
 
 ## Credits and third-party software
 
-CraftLook is an independent community project. The renderers come from the ArtCraft team, from Tangency Labs for SolidCraft, and from their contributors, and keep their original licenses and notices. [Upstream releases and credits](THIRD_PARTY.md)
+CraftLook is made with love by Rocco 'Roccobot' Casadei ([www.roccobot.me](https://www.roccobot.me), [GitHub](https://github.com/Roccobot), [Telegram](https://t.me/roccobot)), as an independent community project. The renderers come from the ArtCraft team, from Tangency Labs for SolidCraft, and from their contributors, and keep their original licenses and notices. [Upstream releases and credits](THIRD_PARTY.md)
 
 ## License
 
-The Swift code, build scripts and tests are available under the [MIT license](LICENSE). The kingfisher icon has [separate artwork terms](ARTWORK.md).
+The Swift code, build scripts and tests are available under the [MIT license](LICENSE). The kingfisher icon and the Roccobot mark have [separate artwork terms](ARTWORK.md).

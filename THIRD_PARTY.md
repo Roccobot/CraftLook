@@ -18,3 +18,7 @@ SolidCraft comes from Tangency Labs, the other renderers from the ArtCraft team.
 ## Sparkle
 
 CraftLook updates itself with [Sparkle 2.11.0-beta.1](https://github.com/sparkle-project/Sparkle/releases/tag/2.11.0-beta.1) (release archive SHA-256 `896daf5116e4edb12d00cc6f87ce1ca90fff1e106c1cbb07988bcdbf3ce38c4c`), the universal `Sparkle.framework` in `CraftLook.app/Contents/Frameworks/`, without its XPC services, which only sandboxed apps use. Sparkle is MIT-licensed, with the notices of the components it includes; its license ships in `CraftLook.app/Contents/Resources/Notices/sparkle/LICENSE`. The build signs the framework and its helpers, `Autoupdate` and `Updater.app`, with the hardened runtime.
+
+## Marks in the app window
+
+The GitHub and Telegram icons of the app window (`Resources/github.svg`, `Resources/telegram.svg` and their PDFs, written by `scripts/icons.py`) are the official marks as drawn by [Simple Icons](https://github.com/simple-icons/simple-icons) 16.38.1, released under CC0-1.0. The marks remain trademarks of GitHub and Telegram ([ARTWORK.md](ARTWORK.md)).

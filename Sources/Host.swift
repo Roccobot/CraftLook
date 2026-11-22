@@ -3,21 +3,29 @@ import AppKit
 import Sparkle
 #endif
 
-/// The app itself: a small window that explains where CraftLook works, and, with Sparkle bundled,
-/// the updates. Sparkle reads its settings from Info.plist (configure.py): a check a day while the
+/// The app itself: the window of Sources/Intro.swift, the menu and, with Sparkle bundled, the
+/// updates. Sparkle reads its settings from Info.plist (configure.py): a check a day while the
 /// app runs, and a question before anything is installed.
 final class Host: NSObject, NSApplicationDelegate {
     #if canImport(Sparkle)
     private let updates = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
     #endif
     private var window: NSWindow?
+    private lazy var intro: Intro = {
+        let resources = Bundle.main.resourceURL ?? Bundle.main.bundleURL
+        #if canImport(Sparkle)
+        return Intro(resources: resources, icon: NSApp.applicationIconImage, updates: updates)
+        #else
+        return Intro(resources: resources, icon: NSApp.applicationIconImage)
+        #endif
+    }()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.mainMenu = menu()
-        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 460, height: 10), styleMask: [.titled, .closable],
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: Intro.column + 2 * Intro.margin, height: 10), styleMask: [.titled, .closable],
                               backing: .buffered, defer: false)
         window.title = "CraftLook"
-        window.contentView = content()
+        window.contentView = intro.view()
         window.setContentSize(window.contentView!.fittingSize)
         window.center()
         window.makeKeyAndOrderFront(nil)
@@ -29,7 +37,7 @@ final class Host: NSObject, NSApplicationDelegate {
 
     private func menu() -> NSMenu {
         let app = NSMenu()
-        app.addItem(withTitle: "About CraftLook", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
+        app.addItem(withTitle: "About CraftLook", action: #selector(about(_:)), keyEquivalent: "").target = self
         #if canImport(Sparkle)
         let check = app.addItem(withTitle: "Check for Updates...", action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)),
                                 keyEquivalent: "")
@@ -46,37 +54,16 @@ final class Host: NSObject, NSApplicationDelegate {
         return bar
     }
 
-    private func content() -> NSView {
-        let info = Bundle.main.infoDictionary ?? [:]
-        let version = "Version \(info["CFBundleShortVersionString"] as? String ?? "") (\(info["CFBundleVersion"] as? String ?? ""))"
-        let icon = NSImageView(image: NSApp.applicationIconImage)
-        icon.widthAnchor.constraint(equalToConstant: 96).isActive = true
-        icon.heightAnchor.constraint(equalToConstant: 96).isActive = true
-        let name = NSTextField(labelWithString: "CraftLook")
-        name.font = .boldSystemFont(ofSize: 20)
-        let numbers = NSTextField(labelWithString: version)
-        numbers.textColor = .secondaryLabelColor
-        let text = NSTextField(wrappingLabelWithString: "Select an ArtCraft project, a SoundCraft session or an SVG file in Finder and press Space to see what's inside. The thumbnail and preview extensions can be turned on or off in System Settings, under General, Login Items & Extensions, Quick Look.")
-        text.preferredMaxLayoutWidth = 380
-        var rows: [NSView] = [icon, name, numbers, text]
-        #if canImport(Sparkle)
-        let automatic = NSButton(checkboxWithTitle: "Check for updates automatically", target: nil, action: nil)
-        automatic.bind(.value, to: updates.updater, withKeyPath: #keyPath(SPUUpdater.automaticallyChecksForUpdates))
-        let check = NSButton(title: "Check for Updates...", target: updates, action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)))
-        rows += [automatic, check]
-        #endif
-        let stack = NSStackView(views: rows)
-        stack.orientation = .vertical
-        stack.alignment = .centerX
-        stack.spacing = 10
-        stack.setCustomSpacing(16, after: text)
-        stack.edgeInsets = NSEdgeInsets(top: 24, left: 40, bottom: 24, right: 40)
-        return stack
-    }
+    @objc private func about(_ sender: Any?) { intro.about(sender) }
 }
 
-let app = NSApplication.shared
-let host = Host()
-app.delegate = host
-app.setActivationPolicy(.regular)
-app.run()
+@main
+enum Main {
+    static func main() {
+        let app = NSApplication.shared
+        let host = Host()
+        app.delegate = host
+        app.setActivationPolicy(.regular)
+        app.run()
+    }
+}

@@ -16,9 +16,11 @@ rm -rf "$app"
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources" "$build/cache"
 python3 configure.py "$app"
 cp "Resources/CraftLook.icns" "$app/Contents/Resources/CraftLook.icns"
+# The marks of the window (Sources/Intro.swift), as vector PDFs (scripts/icons.py).
+cp Resources/tian.pdf Resources/github.pdf Resources/telegram.pdf "$app/Contents/Resources/"
 cp LICENSE ARTWORK.md "$app/Contents/Resources/"
 # Sparkle, prepared beside the renderers: the app links it from Contents/Frameworks. Without it the
-# app is built without updates (Sources/Host.swift, canImport(Sparkle)).
+# app is built without updates (Sources/Host.swift and Sources/Intro.swift, canImport(Sparkle)).
 updater=()
 if [[ -n "$engines" && -d "$engines/sparkle/Sparkle.framework" ]]; then
   updater=(-F "$engines/sparkle" -framework Sparkle -Xlinker -rpath -Xlinker @executable_path/../Frameworks)
@@ -26,7 +28,8 @@ fi
 common=(Sources/Archive.swift Sources/DocumentImage.swift Sources/Drawing.swift Sources/Timeline.swift Sources/RenderXPC.swift)
 for arch in arm64 x86_64; do
   flags=(-target "$arch-apple-macos13.0" -module-cache-path "$build/cache" -O)
-  xcrun swiftc "${flags[@]}" ${updater[@]+"${updater[@]}"} Sources/Host.swift -o "$build/host-$arch"
+  xcrun swiftc "${flags[@]}" -parse-as-library ${updater[@]+"${updater[@]}"} Sources/Host.swift Sources/Intro.swift \
+    -o "$build/host-$arch"
   xcrun swiftc "${flags[@]}" "${common[@]}" Sources/HeadlessRenderer.swift Sources/RenderService.swift \
     -o "$build/CraftRender-$arch"
   for name in Preview Thumbnail; do

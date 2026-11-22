@@ -45,10 +45,10 @@
   'ArtCraft Quick Look', perché le due non mostrino gli stessi file.
 - **Versione SemVer**, con la fonte unica in `configure.py`: `CFBundleShortVersionString` è la
   versione mostrata, `CFBundleVersion` il numero di build, che sale di uno a ogni versione
-  pubblicata, non a ogni build provata. Al 2026-11-22 l'ultima pubblicata è `0.2.5` (`9`), e
-  `configure.py` porta `0.4.0` (`12`), la versione in preparazione: la `0.3.0` (`10`) e la `0.3.1`
-  (`11`) le ha provate solo l'utente sul suo Mac, e le loro novità sono nelle note della `0.4.0`
-  (`docs/release-notes/0.4.0.md`), una per versione pubblicata.
+  pubblicata, non a ogni build provata. Al 2026-11-22 l'ultima pubblicata è `0.4.0` (`12`), e
+  `configure.py` porta `0.4.1` (`13`), la versione in preparazione: la `0.3.0` (`10`) e la `0.3.1`
+  (`11`) le ha provate solo l'utente sul suo Mac, e le loro novità sono nelle note della `0.4.0`.
+  Le note sono una per versione pubblicata, in `docs/release-notes/`.
 - **Una versione pubblicata è una release di GitHub** di questo repo, con l'app costruita da
   `scripts/release.sh`: `build.sh`, gli archivi con gli SHA-256 e l'appcast di Sparkle
   (§ '🔄 Aggiornamenti'); con l'identità Developer ID Application di `CRAFTLOOK_SIGN_ID` anche la
@@ -60,6 +60,27 @@
   originale (`--preserve-metadata=entitlements`): solo SolidCraft ne ha uno,
   `com.apple.security.cs.allow-unsigned-executable-memory`, perché il suo wasmtime compila
   WebAssembly; servizio ed estensioni tengono la sandbox.
+
+## 🪟 La finestra
+
+- **Una finestra sola, di introduzione e impostazioni** (`Sources/Intro.swift`, in inglese): cosa fa
+  CraftLook, gli aggiornamenti, il pulsante *Open System Preferences* e la firma. La colonna di testo
+  è larga 400 punti con 40 punti di margine per lato, perché nessuna riga tocchi i bordi (difetto
+  segnalato dall'utente il 2026-11-22); `Tests/WindowSnapshot.swift` la disegna fuori dallo schermo,
+  nei due temi, e fallisce se una riga oltrepassa i margini.
+- ***Open System Preferences*** **è l'etichetta scelta dall'utente** (2026-11-22), anche se da macOS 13
+  l'app si chiama Impostazioni di Sistema. Apre
+  `x-apple.systempreferences:com.apple.ExtensionsPreferences`: il pannello Estensioni fino a macOS 14,
+  e da macOS 15 Elementi login ed estensioni, che risponde allo stesso nome (`url_alias` del pannello,
+  letto su macOS 27.2.1); se il nome non risponde più, si apre Impostazioni di Sistema.
+- **In calce la firma dell'utente** (sua richiesta del 2026-11-22): *Made with love by Rocco
+  'Roccobot' Casadei* col suo marchio, poi `www.roccobot.me` e le icone di GitHub e Telegram. Il
+  marchio è `Resources/tian.svg`, copiato byte per byte da `design/assets/mark/tian-turchese.svg`
+  dell'hub e mai modificato (`rules/Roccobot.md`, il kanji U+5929); colori dal design system,
+  petrolio sul chiaro e turchese sullo scuro per il marchio, `testo-accento` per il link. Le PDF che
+  l'app disegna le scrive `scripts/icons.py`, perché macOS 13 non legge le immagini SVG. La stessa
+  firma è nel pannello Informazioni, e `NSHumanReadableCopyright` dice `© 2026 Rocco Casadei, a.k.a.
+  Roccobot`.
 
 ## 🔄 Aggiornamenti
 
@@ -101,6 +122,9 @@
   progetto FilmCraft col medium cancellato deve mostrare il segnaposto.
 - `Tests/service_check.sh` manda gli stessi file al servizio dell'app costruita, sandbox compresa,
   tutti insieme, e vuole un'immagine per ognuno.
+- `Tests/WindowSnapshot.swift` disegna la finestra dell'app fuori dallo schermo, nel tema chiaro e
+  in quello scuro, in PNG, senza mostrarla né portare niente in primo piano, e fallisce se una riga
+  oltrepassa i margini (§ '🪟 La finestra').
 
 ## 🔗 Le dipendenze
 
@@ -120,6 +144,9 @@
 ## ⚖️ Licenze e illustrazione
 
 - **Il codice, gli script e le prove sono MIT** (`LICENSE`).
+- **Il marchio di Roccobot** (`Resources/tian.svg` e `.pdf`) **è fuori da quella licenza** come il
+  martin pescatore, e le icone di GitHub e Telegram sono quelle ufficiali disegnate da Simple Icons,
+  CC0-1.0 (`ARTWORK.md`, `THIRD_PARTY.md`).
 - **Il martin pescatore è fuori da quella licenza** (`ARTWORK.md`): `Resources/CraftLook.icns`
   e `docs/images/kingfisher.png` si usano così come sono, come ogni icona e immagine dell'utente
   (`rules/Roccobot.md` § '🧹 Bonifica e ottimizzazione degli asset').
