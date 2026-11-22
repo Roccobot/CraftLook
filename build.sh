@@ -25,7 +25,7 @@ done
 xcrun lipo -create "$build/host-arm64" "$build/host-x86_64" -output "$app/Contents/MacOS/ArtCraftQuickLook"
 if [[ -n "$engines" ]]; then
   mkdir -p "$app/Contents/Resources/Notices" "$build/engine-binaries"
-  for name in figcraft designcraft vectorcraft texturecraft; do
+  for name in $(python3 scripts/prepare_renderers.py --list); do
     source="$engines/$name"
     target="$build/engine-binaries/$name-cli"
     cp "$source/$name-cli" "$target"

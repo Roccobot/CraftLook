@@ -9,7 +9,14 @@ import OSLog
 }
 
 enum RenderXPC {
-    static let supported: Set<String> = ["figcraft", "designcraft", "vectorcraft", "tcraft"]
+    /// The bundled renderer of each extension: the CLI of the app that saves it. SVG files go to VectorCraft.
+    static let renderers = [
+        "figcraft": "figcraft", "designcraft": "designcraft", "vectorcraft": "vectorcraft", "svg": "vectorcraft",
+        "tcraft": "texturecraft", "sc": "solidcraft", "solidcraft": "solidcraft", "fcproj": "filmcraft",
+        "mcraft": "materialcraft", "ecproj": "effectcraft", "ecprojx": "effectcraft",
+    ]
+
+    static let supported = Set(renderers.keys)
     static let inputLimit = 256 << 20
     static let imageLimit = 32 << 20
 

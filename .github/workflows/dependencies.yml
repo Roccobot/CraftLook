@@ -1,4 +1,4 @@
-# Every Monday, the dependencies in docs/Dependencies.json (the four renderer CLIs) against their
+# Every Monday, the dependencies in docs/Dependencies.json (the renderer CLIs) against their
 # latest releases: a newer one opens the issue 'Dipendenze da leggere'. The logic and the script
 # are the hub's (roccobot.github.io), like rules-check.
 # Author: Rocco Casadei, a.k.a. Roccobot

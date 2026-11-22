@@ -276,10 +276,9 @@ Un file più specifico vince **dove parla**, e il suo silenzio non è una deroga
 ## 🧭 Il nucleo di `CraftLook`
 
 - **Che cos'è**: ArtCraft Quick Look, l'app per macOS 13 o successivi, su Mac Intel e Apple
-  silicon, che mostra nel Finder miniature e anteprime statiche dei progetti della suite ArtCraft
-  (`.figcraft`, `.designcraft`, `.vectorcraft`, `.tcraft`, `.pcraft`) e dei `.psd`, con due
-  estensioni Quick Look e un servizio XPC in sandbox che avvia i renderer (`Rules.md` § '🧭 Che
-  cos'è').
+  silicon, che mostra nel Finder miniature e anteprime statiche dei progetti della suite ArtCraft,
+  dei `.psd` e degli `.svg` (i formati sono nella tabella del `README.md`), con due estensioni Quick
+  Look e un servizio XPC in sandbox che avvia i renderer (`Rules.md` § '🧭 Che cos'è').
 - **Ramo principale `main`**; la sessione titolare è `CraftWorks` (registro nel brief), e le regole
   trasversali vivono nell'hub `Roccobot/roccobot.github.io`.
 - **Versione SemVer, fonte unica `CFBundleShortVersionString` in `configure.py`**, con
@@ -287,7 +286,7 @@ Un file più specifico vince **dove parla**, e il suo silenzio non è una deroga
   e versione').
 - **Build e prove solo su macOS, con gli strumenti di Xcode**: `scripts/prepare_renderers.py`,
   `build.sh` e `Tests/check.py` (`Rules.md` § '🧰 Build e prove').
-- **Le dipendenze sono i quattro renderer**, con versione e SHA-256 in `scripts/prepare_renderers.py`
+- **Le dipendenze sono i renderer**, con versione e SHA-256 in `scripts/prepare_renderers.py`
   e il registro in `docs/Dependencies.json`, che il flusso `dependencies.yml` controlla ogni lunedì
   (`Rules.md` § '🔗 Le dipendenze').
 - **Il martin pescatore non si tocca**: l'icona e le sue immagini sono fuori dalla licenza MIT del

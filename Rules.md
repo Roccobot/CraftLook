@@ -9,13 +9,14 @@
 ## 🧭 Che cos'è
 
 - **Un'app per macOS 13 o successivi, su Mac Intel e Apple silicon**, che mostra nel Finder
-  miniature e anteprime statiche dei progetti della suite ArtCraft e dei `.psd`. Da quale parte del
-  file viene l'immagine di ogni formato lo dice la tabella del `README.md`.
+  miniature e anteprime statiche dei progetti della suite ArtCraft, dei `.psd` e degli `.svg`. Da
+  quale parte del file viene l'immagine di ogni formato lo dice la tabella del `README.md`.
 - **Com'è fatta**: un'app ospite (`Sources/Host.swift`), due estensioni Quick Look
   (`Sources/QuickLookPreview.swift` e `Sources/QuickLookThumbnail.swift`) e un servizio XPC privato
   in sandbox (`Sources/RenderService.swift`) che avvia i renderer su una copia temporanea del
-  progetto. I renderer sono le CLI universali di FigCraft, DesignCraft, VectorCraft e TextureCraft,
-  che `scripts/prepare_renderers.py` scarica controllandone lo SHA-256.
+  progetto. I renderer sono le CLI universali di FigCraft, DesignCraft, VectorCraft, TextureCraft,
+  SolidCraft, FilmCraft, MaterialCraft ed EffectCraft, che `scripts/prepare_renderers.py` scarica
+  controllandone lo SHA-256; i file SVG li disegna la CLI di VectorCraft.
 - **Repo principale dal 2026-11-22** (scelta `Elenco-01` dell'utente, card `Pescatore`); la sessione
   titolare è `CraftWorks`, quella che lavora con le applicazioni della suite ArtCraft.
 
@@ -27,7 +28,8 @@
   vecchio, e l'archivio della release 0.2.5 (`artcraft-quick-look-0.2.5-macos.zip`) lo conserva.
 - **Versione SemVer**, con la fonte unica in `configure.py`: `CFBundleShortVersionString` è la
   versione mostrata, `CFBundleVersion` il numero di build, che sale di uno a ogni versione
-  pubblicata. Al 2026-11-22 sono `0.2.5` e `9`.
+  pubblicata. Al 2026-11-22 l'ultima pubblicata è `0.2.5` (`9`), e `configure.py` porta già `0.3.0`
+  (`10`), la versione in preparazione.
 - **Una versione pubblicata è una release di GitHub** di questo repo, con l'app costruita da
   `build.sh`, firmata ad hoc e non notarizzata da Apple (lo dice il README).
 
@@ -39,11 +41,13 @@
   variante che legge solo le anteprime già contenute nei file.
 - `Tests/check.py`, con l'eseguibile di `Tests/RenderCheck.swift`, prova la decodifica senza
   l'editor sulle fixture sintetiche: la scelta del composito e il rifiuto dei file corrotti, senza
-  immagine o oltre i limiti.
+  immagine o oltre i limiti, e il disegno della miniatura su tutto il contesto in pixel.
+- `Tests/samples.py` scrive con le CLI dei renderer un piccolo progetto per ogni formato che solo un
+  renderer sa mostrare (nessuno è nel repo), e `Tests/HeadlessCheck.swift` li fa disegnare.
 
 ## 🔗 Le dipendenze
 
-- **I quattro renderer sono le dipendenze del progetto**: la versione in uso e lo SHA-256 del loro
+- **I renderer sono le dipendenze del progetto**: la versione in uso e lo SHA-256 del loro
   archivio vivono in `RENDERERS` di `scripts/prepare_renderers.py`, il registro è
   `docs/Dependencies.json`, e il flusso `dependencies.yml` li confronta ogni lunedì con l'ultima
   release, aprendo la issue `Dipendenze da leggere` se ce n'è una nuova (`rules/Roccobot.md`

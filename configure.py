@@ -4,13 +4,21 @@ from pathlib import Path
 
 app = Path(sys.argv[1])
 bundle = 'org.artcraftquicklook.local'
+# The project types: UTI, extensions and conformance. SolidCraft, FilmCraft, MaterialCraft and
+# EffectCraft repeat the declaration their own app exports.
 formats = {
-    'figcraft': 'ai.storyteller.figcraft.document',
-    'designcraft': 'ai.storyteller.designcraft.document',
-    'vectorcraft': 'ai.storyteller.vectorcraft.document',
-    'tcraft': 'ai.storyteller.texturecraft.project',
-    'pcraft': 'ai.storyteller.photocraft.document',
+    'ai.storyteller.figcraft.document': (['figcraft'], ['public.content', 'public.data']),
+    'ai.storyteller.designcraft.document': (['designcraft'], ['public.content', 'public.data']),
+    'ai.storyteller.vectorcraft.document': (['vectorcraft'], ['public.content', 'public.data']),
+    'ai.storyteller.texturecraft.project': (['tcraft'], ['public.content', 'public.data']),
+    'ai.storyteller.photocraft.document': (['pcraft'], ['public.data', 'public.image']),
+    'io.tangencylabs.solidcraft.design': (['sc', 'solidcraft'], ['public.data', 'public.content']),
+    'ai.storyteller.filmcraft.project': (['fcproj'], ['public.data', 'public.json']),
+    'ai.storyteller.materialcraft.package': (['mcraft'], ['public.data', 'public.content']),
+    'ai.storyteller.effectcraft.document': (['ecproj', 'ecprojx'], ['public.data', 'public.content']),
 }
+# Types macOS declares itself, so they are only listed in the extensions.
+system_types = ['com.adobe.photoshop-image', 'public.svg-image']
 def write(path, data):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(plistlib.dumps(data))
@@ -18,22 +26,21 @@ def write(path, data):
 def info(name, kind, identifier):
     return dict(CFBundleExecutable=name, CFBundleIdentifier=identifier, CFBundleName=name,
                 CFBundleDisplayName='ArtCraft Quick Look', CFBundlePackageType=kind,
-                CFBundleVersion='9', CFBundleShortVersionString='0.2.5',
+                CFBundleVersion='10', CFBundleShortVersionString='0.3.0',
                 CFBundleInfoDictionaryVersion='6.0', LSMinimumSystemVersion='13.0',
                 CFBundleDevelopmentRegion='it', CFBundleSupportedPlatforms=['MacOSX'])
 
 host = info('ArtCraftQuickLook', 'APPL', bundle)
 host['CFBundleIconFile'] = 'ArtCraftQuickLook.icns'
 host['UTImportedTypeDeclarations'] = [
-    dict(UTTypeIdentifier=uti, UTTypeDescription=f'{ext} document',
-         UTTypeTagSpecification={'public.filename-extension':[ext]},
-         UTTypeConformsTo=['public.data', 'public.image'] if ext == 'pcraft' else ['public.content', 'public.data'])
-    for ext, uti in formats.items()
+    dict(UTTypeIdentifier=uti, UTTypeDescription=f'{extensions[0]} document',
+         UTTypeTagSpecification={'public.filename-extension': extensions}, UTTypeConformsTo=conforms)
+    for uti, (extensions, conforms) in formats.items()
 ]
 write(app/'Contents/Info.plist', host)
 for name, point in [('Preview','preview'),('Thumbnail','thumbnail')]:
     p = info(name, 'XPC!', bundle+'.'+point)
-    attrs = dict(QLSupportedContentTypes=[*formats.values(),'com.adobe.photoshop-image'])
+    attrs = dict(QLSupportedContentTypes=[*formats, *system_types])
     if name == 'Preview':
         attrs.update(QLIsDataBasedPreview=True, QLSupportsSearchableItems=False)
     else:
