@@ -1,22 +1,28 @@
-<img align="right" src="docs/images/kingfisher.png" width="112" alt="Un martin pescatore con un pesce nel becco">
+<p align="center">
+  <img src="docs/images/kingfisher.png" width="128" alt="L'icona di ArtCraft Quick Look, un martin pescatore con un pesce nel becco">
+</p>
 
-# ArtCraft Quick Look
+<h1 align="center">ArtCraft Quick Look</h1>
 
-Seleziona un progetto ArtCraft, una sessione di SoundCraft o un file SVG nel Finder e premi **Spazio** per vederne il contenuto. Seleziona più revisioni e scorrile con i tasti freccia. ArtCraft Quick Look aggiunge sia le miniature nelle cartelle sia le anteprime statiche più grandi.
+<p align="center">Miniature nel Finder e anteprime con la barra spaziatrice per i progetti ArtCraft, le sessioni di SoundCraft e i file SVG.</p>
 
-**[Scarica per macOS](https://github.com/Roccobot/CraftLook/releases/latest)** · [English README](README.md)
+<p align="center">
+  <a href="https://github.com/Roccobot/CraftLook/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/Roccobot/CraftLook?include_prereleases&label=release&color=03484F"></a>
+  <img alt="macOS 13+" src="https://img.shields.io/badge/macOS-13%2B-487D82?logo=apple&logoColor=white">
+  <a href="LICENSE"><img alt="Licenza: MIT" src="https://img.shields.io/badge/licenza-MIT-487D82"></a>
+</p>
 
-## Provalo
+<p align="center">
+  <b><a href="https://github.com/Roccobot/CraftLook/releases/latest">Scarica per macOS</a></b> · <a href="README.md">English README</a>
+</p>
 
-1. Scarica lo ZIP dall'[ultima release](https://github.com/Roccobot/CraftLook/releases/latest). Contiene i renderer e funziona sui Mac Intel e Apple silicon con macOS 13 o successivi.
-2. Estrai l'archivio, sposta **ArtCraft Quick Look** in **Applicazioni** e aprila una volta. Questa build ha una firma ad hoc e non è notarizzata da Apple. Al primo avvio Gatekeeper può chiedere un'autorizzazione. [Guida Apple](https://support.apple.com/it-it/102445)
-3. Nel Finder seleziona un file compatibile e premi **Spazio**. Se il Finder mostra solo un'icona generica, controlla che le estensioni di ArtCraft Quick Look siano attive nelle Impostazioni di Sistema e che **Mostra anteprima icona** sia attivo nelle opzioni Vista del Finder.
+Seleziona un progetto ArtCraft nel Finder e premi **Spazio** per vederne il contenuto, senza aprire l'app che l'ha creato. Seleziona più revisioni e scorrile con i tasti freccia. Le cartelle mostrano miniature vere al posto delle icone generiche.
 
-Puoi provarlo con [River Study, un piccolo progetto VectorCraft](https://raw.githubusercontent.com/Roccobot/CraftLook/main/examples/river-study.vectorcraft). Salva il file con l'estensione `.vectorcraft`. L'immagine qui sotto è la miniatura che macOS ha generato da quel file.
+![Le anteprime di una stampa di VectorCraft, un tramonto di FilmCraft, un cubo di SolidCraft, un cubo di MaterialCraft, una timeline di SoundCraft e un'etichetta SVG](docs/images/formats.png)
 
-![La miniatura reale del Finder di River Study, una stampa col sole che tramonta su un fiume](docs/images/river-study.png)
+<p align="center"><sub>Anteprime disegnate da ArtCraft Quick Look a partire dai file d'esempio del progetto.</sub></p>
 
-## File supportati
+## Formati supportati
 
 | App o formato | Estensione | Che cosa vedi |
 | --- | --- | --- |
@@ -33,11 +39,35 @@ Puoi provarlo con [River Study, un piccolo progetto VectorCraft](https://raw.git
 | Documento Photoshop | `.psd` | Il composito che macOS legge con ImageIO. Photoshop non serve. |
 | Immagine SVG | `.svg` | Il disegno reso da VectorCraft, testo compreso. |
 
-Le anteprime di FigCraft e DesignCraft arrivano a 2048 pixel sul lato più lungo. Le miniature del Finder usano un'immagine salvata, quando c'è. I renderer inclusi lavorano sul Mac, tramite un servizio in sandbox, su una copia temporanea del file richiesto. I progetti che usano file esterni al progetto possono apparire diversi: Quick Look non lascia che il renderer li legga, quindi in un fotogramma di FilmCraft ogni immagine di un altro file diventa un rettangolo verde arrotondato della sua misura, al suo posto. Il disegno ha un limite di 12 secondi e un limite di 256 MiB sul file.
-
 PdfCraft lavora sui normali file PDF, che macOS mostra da sé.
 
-macOS usa una sola estensione Quick Look per ogni tipo di file. Se anche un'altra app mostra i file SVG, come Looq o Gapplin, disattiva la sua estensione nelle Impostazioni di Sistema, in Generali, Elementi login ed estensioni, Quick Look, perché sia ArtCraft Quick Look a mostrarli.
+## Installazione
+
+1. Scarica lo ZIP dall'[ultima release](https://github.com/Roccobot/CraftLook/releases/latest).
+2. Estrai l'archivio, sposta **ArtCraft Quick Look** in **Applicazioni** e aprila una volta.
+3. Nel Finder seleziona un file compatibile e premi **Spazio**.
+
+Per aggiornare, chiudi l'app, sostituiscila in **Applicazioni** con quella nuova e aprila una volta. Per provarla subito, scarica [River Study, un piccolo progetto VectorCraft](https://raw.githubusercontent.com/Roccobot/CraftLook/main/examples/river-study.vectorcraft) e tieni l'estensione `.vectorcraft`.
+
+### Primo avvio
+
+L'app ha una firma ad hoc e non è ancora notarizzata da Apple, quindi la prima volta macOS può rifiutarsi di aprirla. In quel caso vai nelle **Impostazioni di Sistema**, in **Privacy e sicurezza**, e fai clic su **Apri comunque**, come spiega la [guida Apple](https://support.apple.com/it-it/102445). Basta farlo una volta.
+
+Se il Finder mostra ancora un'icona generica, controlla che le estensioni di ArtCraft Quick Look siano attive nelle **Impostazioni di Sistema**, in **Generali**, **Elementi login ed estensioni**, **Quick Look**, e che **Mostra anteprima icona** sia attivo nelle opzioni Vista del Finder.
+
+### Requisiti
+
+- macOS 13 o successivi, su un Mac Intel o Apple silicon.
+- Circa 1,6 GB di spazio su disco, renderer compresi.
+- Non serve installare nessuna app ArtCraft: i renderer sono dentro ArtCraft Quick Look. Per i file `.psd` non serve nemmeno Photoshop.
+
+## Come funziona
+
+Due estensioni Quick Look danno al Finder le miniature e le anteprime più grandi. Quando un file non ha un'anteprima salvata, un servizio in sandbox avvia il renderer a riga di comando della sua app, incluso, sul Mac, su una copia temporanea del file, e mette in coda le richieste che arrivano insieme. Il disegno ha un limite di 12 secondi e un limite di 256 MiB sul file. Le anteprime di FigCraft e DesignCraft arrivano a 2048 pixel sul lato più lungo, e le miniature del Finder usano un'immagine salvata, quando c'è.
+
+Quick Look non lascia che il renderer legga i file esterni al progetto, quindi i progetti che li usano possono apparire diversi: in un fotogramma di FilmCraft ogni immagine di un altro file diventa un rettangolo verde arrotondato della sua misura, al suo posto.
+
+macOS usa una sola estensione Quick Look per ogni tipo di file. Se anche un'altra app mostra i file SVG, come Looq o Gapplin, disattiva la sua estensione nelle stesse impostazioni di Quick Look, perché sia ArtCraft Quick Look a mostrarli.
 
 ## Build e controlli
 
@@ -82,10 +112,14 @@ Tests/service_check.sh "build/ArtCraft Quick Look.app" build/samples/* examples/
 - [SoundCraft](https://github.com/storytold/soundcraft): il tipo che l'app dichiara e la sessione che salva il suo strumento a riga di comando
 - [Apple Quick Look UI](https://developer.apple.com/documentation/quicklookui/qlpreviewprovider) e [Quick Look Thumbnailing](https://developer.apple.com/documentation/quicklookthumbnailing/qlthumbnailprovider)
 
-## Segnalazioni e riconoscimenti
+## Segnalazioni
 
 Per un'anteprima vuota o sbagliata, indica l'estensione, la versione di macOS, la versione dell'app che ha salvato il file e, se puoi, un piccolo progetto da condividere. [Segnala un problema di anteprima](https://github.com/Roccobot/CraftLook/issues/new?template=preview.yml)
 
-ArtCraft Quick Look è un progetto indipendente della comunità. I renderer vengono dal gruppo di ArtCraft, da Tangency Labs per SolidCraft, e dai loro collaboratori. [Release originali e riconoscimenti](THIRD_PARTY.md)
+## Riconoscimenti e software di terze parti
+
+ArtCraft Quick Look è un progetto indipendente della comunità. I renderer vengono dal gruppo di ArtCraft, da Tangency Labs per SolidCraft, e dai loro collaboratori, e conservano le licenze e gli avvisi originali. [Release originali e riconoscimenti](THIRD_PARTY.md)
+
+## Licenza
 
 Il codice Swift, gli script di build e i test sono distribuiti con [licenza MIT](LICENSE). Per il martin pescatore valgono [condizioni separate](ARTWORK.md).

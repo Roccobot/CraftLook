@@ -1,22 +1,28 @@
-<img align="right" src="docs/images/kingfisher.png" width="112" alt="A kingfisher holding a fish">
+<p align="center">
+  <img src="docs/images/kingfisher.png" width="128" alt="The ArtCraft Quick Look icon, a kingfisher holding a fish">
+</p>
 
-# ArtCraft Quick Look
+<h1 align="center">ArtCraft Quick Look</h1>
 
-Select an ArtCraft project, a SoundCraft session or an SVG file in Finder and press **Space** to see what's inside. Select several revisions and use the arrow keys to flip through them. ArtCraft Quick Look adds both the thumbnails in your folders and the larger, static previews.
+<p align="center">Finder thumbnails and Space-bar previews for ArtCraft projects, SoundCraft sessions and SVG files.</p>
 
-**[Download for macOS](https://github.com/Roccobot/CraftLook/releases/latest)** · [Guida in italiano](README.it.md)
+<p align="center">
+  <a href="https://github.com/Roccobot/CraftLook/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/Roccobot/CraftLook?include_prereleases&label=release&color=03484F"></a>
+  <img alt="macOS 13+" src="https://img.shields.io/badge/macOS-13%2B-487D82?logo=apple&logoColor=white">
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-487D82"></a>
+</p>
 
-## Try it
+<p align="center">
+  <b><a href="https://github.com/Roccobot/CraftLook/releases/latest">Download for macOS</a></b> · <a href="README.it.md">Guida in italiano</a>
+</p>
 
-1. Download the ZIP from the [latest release](https://github.com/Roccobot/CraftLook/releases/latest). It includes the renderers and supports Intel and Apple silicon Macs running macOS 13 or later.
-2. Unzip the download, move **ArtCraft Quick Look** into **Applications**, and open it once. This build is ad hoc signed and hasn't been notarized by Apple. Gatekeeper may ask for approval on the first launch. [Apple's guide](https://support.apple.com/en-us/102445)
-3. In Finder, select a supported file and press **Space**. If Finder shows only a generic icon, check that the ArtCraft Quick Look extensions are enabled in System Settings and that **Show icon preview** is on in Finder's View Options.
+Select an ArtCraft project in Finder and press **Space** to see what's inside, without opening the app that made it. Select several revisions and flip through them with the arrow keys. Your folders show real thumbnails instead of generic icons.
 
-You can try it with [River Study, a small VectorCraft project](https://raw.githubusercontent.com/Roccobot/CraftLook/main/examples/river-study.vectorcraft). Save the file with its `.vectorcraft` extension. The image below is the thumbnail macOS generated from that file.
+![Previews of a VectorCraft print, a FilmCraft sunset, a SolidCraft box, a MaterialCraft cube, a SoundCraft timeline and an SVG label](docs/images/formats.png)
 
-![Actual Finder thumbnail of River Study, a print showing the setting sun over a river](docs/images/river-study.png)
+<p align="center"><sub>Previews drawn by ArtCraft Quick Look from the project's sample files.</sub></p>
 
-## Supported files
+## Supported formats
 
 | App or format | Extension | What you see |
 | --- | --- | --- |
@@ -33,11 +39,35 @@ You can try it with [River Study, a small VectorCraft project](https://raw.githu
 | Photoshop document | `.psd` | The composite that macOS ImageIO can read. Photoshop is optional. |
 | SVG image | `.svg` | The drawing rendered by VectorCraft, text included. |
 
-FigCraft and DesignCraft previews can reach 2048 pixels on the longest side. Finder thumbnails prefer a saved image when available. The bundled renderers run locally, through a sandboxed service, on a temporary copy of the requested file. Projects that rely on files outside the project may look different: Quick Look doesn't let the renderer read them, so in a FilmCraft frame each picture from another file becomes a green rounded rectangle of its size, in its place. Rendering has a 12-second time limit and a 256 MiB input limit.
-
 PdfCraft works on standard PDF files, which macOS previews by itself.
 
-macOS uses one Quick Look extension for each file type. If another app also previews SVG files, such as Looq or Gapplin, turn its extension off in System Settings, under General, Login Items & Extensions, Quick Look, so that ArtCraft Quick Look shows them.
+## Install
+
+1. Download the ZIP from the [latest release](https://github.com/Roccobot/CraftLook/releases/latest).
+2. Unzip it, move **ArtCraft Quick Look** into **Applications** and open it once.
+3. In Finder, select a supported file and press **Space**.
+
+To upgrade, quit the app, replace it in **Applications** with the new one and open it once. To try it right away, download [River Study, a small VectorCraft project](https://raw.githubusercontent.com/Roccobot/CraftLook/main/examples/river-study.vectorcraft) and keep its `.vectorcraft` extension.
+
+### First launch
+
+The app is ad hoc signed and not yet notarized by Apple, so macOS may refuse to open it the first time. If it does, go to **System Settings**, **Privacy & Security**, and click **Open Anyway**, as [Apple's guide](https://support.apple.com/en-us/102445) explains. You only need to do this once.
+
+If Finder still shows a generic icon, check that the ArtCraft Quick Look extensions are on in **System Settings**, under **General**, **Login Items & Extensions**, **Quick Look**, and that **Show icon preview** is on in Finder's View Options.
+
+### Requirements
+
+- macOS 13 or later, on an Intel or Apple silicon Mac.
+- About 1.6 GB of disk space, renderers included.
+- No ArtCraft app has to be installed: the renderers ship inside ArtCraft Quick Look. Photoshop isn't needed for `.psd` files either.
+
+## How it works
+
+Two Quick Look extensions give Finder the thumbnails and the larger previews. When a file has no saved preview, a sandboxed service runs the bundled command-line renderer of its app, on your Mac, on a temporary copy of the file, and queues requests that arrive together. Rendering has a 12-second time limit and a 256 MiB input limit. FigCraft and DesignCraft previews reach 2048 pixels on the longest side, and Finder thumbnails prefer a saved image when there is one.
+
+Quick Look doesn't let the renderer read files outside the project, so projects that use them may look different: in a FilmCraft frame, each picture from another file becomes a green rounded rectangle of its size, in its place.
+
+macOS uses one Quick Look extension for each file type. If another app also previews SVG files, such as Looq or Gapplin, turn its extension off in the same Quick Look settings so that ArtCraft Quick Look shows them.
 
 ## Build from source
 
@@ -82,10 +112,14 @@ Tests/service_check.sh "build/ArtCraft Quick Look.app" build/samples/* examples/
 - [SoundCraft](https://github.com/storytold/soundcraft): the type the app declares, and the session that its command-line tool saves
 - [Apple Quick Look UI](https://developer.apple.com/documentation/quicklookui/qlpreviewprovider) and [Quick Look Thumbnailing](https://developer.apple.com/documentation/quicklookthumbnailing/qlthumbnailprovider)
 
-## Feedback and credits
+## Feedback
 
 For a blank or incorrect preview, include the extension, the macOS version, the version of the app that saved the file and, if possible, a small project you can share. [Report a preview issue](https://github.com/Roccobot/CraftLook/issues/new?template=preview.yml)
 
-ArtCraft Quick Look is an independent community project. The renderers come from the ArtCraft team, from Tangency Labs for SolidCraft, and from their contributors. [Upstream releases and credits](THIRD_PARTY.md)
+## Credits and third-party software
+
+ArtCraft Quick Look is an independent community project. The renderers come from the ArtCraft team, from Tangency Labs for SolidCraft, and from their contributors, and keep their original licenses and notices. [Upstream releases and credits](THIRD_PARTY.md)
+
+## License
 
 The Swift code, build scripts and tests are available under the [MIT license](LICENSE). The kingfisher icon has [separate artwork terms](ARTWORK.md).
