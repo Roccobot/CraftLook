@@ -30,6 +30,7 @@ enum WindowSnapshot {
                                   styleMask: [.titled, .closable], backing: .buffered, defer: false)
             window.appearance = NSAppearance(named: appearance)
             window.title = "CraftLook"
+            Intro.style(window)
             window.contentView = intro.view()
             window.setContentSize(window.contentView!.fittingSize)
             let view = window.contentView!
@@ -54,13 +55,22 @@ enum WindowSnapshot {
             print(file.path, Int(size.width), "x", Int(size.height))
             // Every row must keep the margins, measured on its alignment rectangle, the one Auto Layout
             // places: a text field's frame is wider than its text by a small inset on each side.
-            for sub in view.subviews {
-                let rect = sub.alignmentRect(forFrame: sub.frame)
-                if rect.minX < Intro.margin - 0.5 || rect.maxX > size.width - Intro.margin + 0.5 {
-                    print("FAIL: \(type(of: sub)) at \(rect) crosses the margins")
-                    exit(1)
+            // Containers (the glass panels) may come closer to the edges; texts, buttons and images may not.
+            var leaves = 0
+            func check(_ sub: NSView) {
+                if sub is NSControl || sub is NSImageView {
+                    leaves += 1
+                    let rect = view.convert(sub.alignmentRect(forFrame: sub.frame), from: sub.superview)
+                    if rect.minX < Intro.margin - 0.5 || rect.maxX > size.width - Intro.margin + 0.5 {
+                        print("FAIL: \(type(of: sub)) \((sub as? NSTextField)?.stringValue ?? (sub as? NSButton)?.title ?? "") at \(rect) crosses the margins")
+                        exit(1)
+                    }
+                    return
                 }
+                sub.subviews.forEach(check)
             }
+            view.subviews.forEach(check)
+            print("margins: \(leaves) texts, buttons and images inside \(Intro.margin) points")
         }
     }
 }

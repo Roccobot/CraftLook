@@ -6,23 +6,38 @@ import Sparkle
 /// The app's only window: what CraftLook does, the updates, the way to the Quick Look extensions in
 /// System Settings, and the author's credit. It is a view of its own, so that Tests/WindowSnapshot
 /// can draw it offscreen with the same code.
+///
+/// The layout follows Liquid Glass (Apple HIG, Materials): the content sits on the window's
+/// standard material, edge to edge under a transparent title bar, and only the controls float on
+/// glass, grouped in panels with corners concentric to the buttons inside them. Before macOS 26 the
+/// panels fall back to a standard material (NSVisualEffectView) with the same shape.
 final class Intro: NSObject {
-    /// The text column, with the margins on both sides that keep every line off the window's edges.
+    /// The text column, and the margin that keeps every text and control off the window's edges.
     static let column: CGFloat = 400
     static let margin: CGFloat = 40
+    /// The glass panels are wider than the text: inset from the window edges by `edge`, with the
+    /// text and controls inside them still at `margin`.
+    static let edge: CGFloat = 24
+    static var padding: CGFloat { margin - edge }
+    /// Concentric corners: a panel's radius is its padding plus the radius of the capsule buttons it
+    /// holds (half the height of a regular push button).
+    static let controlRadius: CGFloat = 12
+    static var panelRadius: CGFloat { padding + controlRadius }
+    /// Room for the transparent title bar, which the content runs under.
+    static let titlebar: CGFloat = 28
     /// The Quick Look extensions: the Extensions pane up to macOS 14, and Login Items & Extensions,
     /// which answers to the same name (url_alias), from macOS 15.
     static let extensions = URL(string: "x-apple.systempreferences:com.apple.ExtensionsPreferences")!
     static let website = URL(string: "https://www.roccobot.me")!
     static let github = URL(string: "https://github.com/Roccobot")!
     static let telegram = URL(string: "https://t.me/roccobot")!
-    /// The credit, also in the About panel.
-    static let credit = "Made with love by Rocco 'Roccobot' Casadei"
-    /// Colors of the Roccobot design system (design/tokens.json of the roccobot.github.io hub): the
-    /// mark in petrol on light and turquoise on dark, as its files are, since at this size turquoise
-    /// doesn't read on light; links in testo-accento, the accent made for text.
-    static let markColor = themed(light: 0x00727B, dark: 0x43B59E)
-    static let linkColor = themed(light: 0x0B6B5B, dark: 0x4FD9BE)
+    /// The credit, with the heart Rocco asked for, also in the About panel.
+    static let credit = "Made with \u{2665} by Rocco 'Roccobot' Casadei"
+    /// The mark and the link: in the light theme the dark teal of the app icon's background
+    /// (#03484F, sampled from docs/images/kingfisher.png); in the dark theme the mark in turquoise and
+    /// the link in testo-accento, from the Roccobot design system (design/tokens.json of the hub).
+    static let markColor = themed(light: 0x03484F, dark: 0x43B59E)
+    static let linkColor = themed(light: 0x03484F, dark: 0x4FD9BE)
 
     private static func themed(light: Int, dark: Int) -> NSColor {
         func color(_ hex: Int) -> NSColor {
@@ -32,6 +47,14 @@ final class Intro: NSObject {
         return NSColor(name: nil) { appearance in
             appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? color(dark) : color(light)
         }
+    }
+
+    /// Sets a window up for this view: full-size content under a transparent title bar.
+    static func style(_ window: NSWindow) {
+        window.styleMask.insert(.fullSizeContentView)
+        window.titlebarAppearsTransparent = true
+        window.titleVisibility = .hidden
+        window.isMovableByWindowBackground = true
     }
 
     private let resources: URL
@@ -73,6 +96,13 @@ final class Intro: NSObject {
         return label
     }
 
+    /// A push button in the capsule shape of Liquid Glass, where the system has it.
+    private func button(_ title: String, target: AnyObject?, action: Selector) -> NSButton {
+        let button = NSButton(title: title, target: target, action: action)
+        if #available(macOS 26.0, *) { button.borderShape = .capsule }
+        return button
+    }
+
     private func link(_ title: String, url: URL) -> NSButton {
         let button = NSButton(title: title, target: self, action: #selector(open(_:)))
         button.isBordered = false
@@ -84,9 +114,10 @@ final class Intro: NSObject {
         return button
     }
 
+    /// An icon button, plain: the HIG keeps glass for the most important controls, and these two are
+    /// part of the credit.
     private func social(_ name: String, label: String, url: URL) -> NSButton {
         let button = NSButton(title: "", target: self, action: #selector(open(_:)))
-        button.isBordered = false
         button.identifier = NSUserInterfaceItemIdentifier(url.absoluteString)
         let image = NSImage(contentsOf: resources.appendingPathComponent("\(name).pdf")) ?? NSImage()
         image.isTemplate = true
@@ -94,9 +125,59 @@ final class Intro: NSObject {
         button.image = image
         button.imagePosition = .imageOnly
         button.contentTintColor = .secondaryLabelColor
+        button.isBordered = false
         button.toolTip = label
         button.setAccessibilityLabel(label)
         return button
+    }
+
+    /// A group of controls on a panel: Liquid Glass on macOS 26 and later, a standard material before.
+    private func panel(_ rows: [NSView], spacing: CGFloat = 8) -> NSView {
+        let stack = NSStackView(views: rows)
+        stack.orientation = .vertical
+        stack.alignment = .centerX
+        stack.spacing = spacing
+        stack.edgeInsets = NSEdgeInsets(top: 14, left: Self.padding, bottom: 14, right: Self.padding)
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        let width = Self.column + 2 * Self.padding
+        stack.widthAnchor.constraint(equalToConstant: width).isActive = true
+        if #available(macOS 26.0, *) {
+            let glass = NSGlassEffectView()
+            glass.cornerRadius = Self.panelRadius
+            glass.contentView = stack
+            return glass
+        }
+        let material = NSVisualEffectView()
+        material.material = .popover
+        material.blendingMode = .withinWindow
+        material.state = .followsWindowActiveState
+        material.wantsLayer = true
+        material.layer?.cornerRadius = Self.panelRadius
+        material.layer?.cornerCurve = .continuous
+        material.layer?.masksToBounds = true
+        material.addSubview(stack)
+        NSLayoutConstraint.activate([
+            stack.leadingAnchor.constraint(equalTo: material.leadingAnchor),
+            stack.trailingAnchor.constraint(equalTo: material.trailingAnchor),
+            stack.topAnchor.constraint(equalTo: material.topAnchor),
+            stack.bottomAnchor.constraint(equalTo: material.bottomAnchor),
+        ])
+        return material
+    }
+
+    /// Several panels, merged by the system into one glass rendering where it can.
+    private func group(_ panels: [NSView], spacing: CGFloat) -> NSView {
+        let stack = NSStackView(views: panels)
+        stack.orientation = .vertical
+        stack.alignment = .centerX
+        stack.spacing = spacing
+        if #available(macOS 26.0, *) {
+            let container = NSGlassEffectContainerView()
+            container.spacing = spacing
+            container.contentView = stack
+            return container
+        }
+        return stack
     }
 
     @objc private func open(_ sender: NSButton) {
@@ -115,29 +196,30 @@ final class Intro: NSObject {
     func view() -> NSView {
         let info = Bundle.main.infoDictionary ?? [:]
         let image = NSImageView(image: icon)
-        image.widthAnchor.constraint(equalToConstant: 96).isActive = true
-        image.heightAnchor.constraint(equalToConstant: 96).isActive = true
+        image.widthAnchor.constraint(equalToConstant: 112).isActive = true
+        image.heightAnchor.constraint(equalToConstant: 112).isActive = true
         let name = NSTextField(labelWithString: "CraftLook")
-        name.font = .boldSystemFont(ofSize: 20)
+        name.font = .systemFont(ofSize: 26, weight: .bold)
         let version = NSTextField(labelWithString:
             "Version \(info["CFBundleShortVersionString"] as? String ?? "") (\(info["CFBundleVersion"] as? String ?? ""))")
         version.textColor = .secondaryLabelColor
         let text = paragraph("Select an ArtCraft project, a SoundCraft session or an SVG file in Finder and press Space to see what's inside.",
                              size: NSFont.systemFontSize, color: .labelColor)
-        var rows: [NSView] = [image, name, version, text]
+        var panels: [NSView] = []
         #if canImport(Sparkle)
         if let updates {
             let automatic = NSButton(checkboxWithTitle: "Check for updates automatically", target: nil, action: nil)
             automatic.bind(.value, to: updates.updater, withKeyPath: #keyPath(SPUUpdater.automaticallyChecksForUpdates))
-            let check = NSButton(title: "Check for Updates...", target: updates,
-                                 action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)))
-            rows += [automatic, check]
+            let check = button("Check for Updates...", target: updates,
+                               action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)))
+            panels.append(panel([automatic, check], spacing: 10))
         }
         #endif
-        let settings = NSButton(title: "Open System Preferences", target: self, action: #selector(openExtensions(_:)))
+        let settings = button("Open System Preferences", target: self, action: #selector(openExtensions(_:)))
         let how = paragraph("Under Extensions, open Quick Look and turn CraftLook on.\nTurn it off to go back to the standard macOS previews.",
                             size: NSFont.smallSystemFontSize, color: .secondaryLabelColor)
-        rows += [settings, how]
+        panels.append(panel([settings, how], spacing: 10))
+        let controls = group(panels, spacing: 12)
         let signature = NSTextField(labelWithString: Self.credit)
         signature.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
         signature.textColor = .secondaryLabelColor
@@ -149,21 +231,35 @@ final class Intro: NSObject {
         let icons = NSStackView(views: [social("github", label: "GitHub", url: Self.github),
                                         social("telegram", label: "Telegram", url: Self.telegram)])
         icons.orientation = .horizontal
-        icons.spacing = 14
-        rows += [credit, website, icons]
+        icons.spacing = 16
+        let rows: [NSView] = [image, name, version, text, controls, credit, website, icons]
         let stack = NSStackView(views: rows)
         stack.orientation = .vertical
         stack.alignment = .centerX
-        stack.spacing = 10
-        stack.setCustomSpacing(16, after: text)
-        stack.setCustomSpacing(18, after: rows[rows.firstIndex(of: settings)! - 1])
-        stack.setCustomSpacing(6, after: settings)
-        stack.setCustomSpacing(36, after: how)
+        stack.spacing = 8
+        stack.setCustomSpacing(14, after: image)
+        stack.setCustomSpacing(2, after: name)
+        stack.setCustomSpacing(16, after: version)
+        stack.setCustomSpacing(24, after: text)
+        stack.setCustomSpacing(36, after: controls)
         stack.setCustomSpacing(2, after: credit)
-        stack.setCustomSpacing(10, after: website)
-        stack.edgeInsets = NSEdgeInsets(top: 24, left: Self.margin, bottom: 24, right: Self.margin)
-        stack.widthAnchor.constraint(equalToConstant: Self.column + 2 * Self.margin).isActive = true
-        return stack
+        stack.setCustomSpacing(12, after: website)
+        stack.edgeInsets = NSEdgeInsets(top: Self.titlebar + 20, left: Self.edge, bottom: 28, right: Self.edge)
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        // The content layer: the window's standard material, edge to edge, under the title bar.
+        let background = NSVisualEffectView()
+        background.material = .windowBackground
+        background.blendingMode = .behindWindow
+        background.state = .followsWindowActiveState
+        background.addSubview(stack)
+        NSLayoutConstraint.activate([
+            stack.leadingAnchor.constraint(equalTo: background.leadingAnchor),
+            stack.trailingAnchor.constraint(equalTo: background.trailingAnchor),
+            stack.topAnchor.constraint(equalTo: background.topAnchor),
+            stack.bottomAnchor.constraint(equalTo: background.bottomAnchor),
+            stack.widthAnchor.constraint(equalToConstant: Self.column + 2 * Self.margin),
+        ])
+        return background
     }
 
     /// The About panel, with the same credit as the window.
@@ -173,6 +269,7 @@ final class Intro: NSObject {
         ])
         credits.append(NSAttributedString(string: "www.roccobot.me", attributes: [
             .font: NSFont.systemFont(ofSize: NSFont.smallSystemFontSize), .link: Self.website,
+            .foregroundColor: Self.linkColor,
         ]))
         let centered = NSMutableParagraphStyle()
         centered.alignment = .center

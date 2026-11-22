@@ -139,7 +139,7 @@ Per un'anteprima vuota o sbagliata, indica l'estensione, la versione di macOS, l
 
 ## Riconoscimenti e software di terze parti
 
-CraftLook è fatta con amore da Rocco 'Roccobot' Casadei ([www.roccobot.me](https://www.roccobot.me), [GitHub](https://github.com/Roccobot), [Telegram](https://t.me/roccobot)), come progetto indipendente della comunità. I renderer vengono dal gruppo di ArtCraft, da Tangency Labs per SolidCraft, e dai loro collaboratori, e conservano le licenze e gli avvisi originali. [Release originali e riconoscimenti](THIRD_PARTY.md)
+CraftLook è fatta con ♥ da Rocco 'Roccobot' Casadei ([www.roccobot.me](https://www.roccobot.me), [GitHub](https://github.com/Roccobot), [Telegram](https://t.me/roccobot)), come progetto indipendente della comunità. I renderer vengono dal gruppo di ArtCraft, da Tangency Labs per SolidCraft, e dai loro collaboratori, e conservano le licenze e gli avvisi originali. [Release originali e riconoscimenti](THIRD_PARTY.md)
 
 ## Licenza
 

@@ -139,7 +139,7 @@ For a blank or incorrect preview, include the extension, the macOS version, the 
 
 ## Credits and third-party software
 
-CraftLook is made with love by Rocco 'Roccobot' Casadei ([www.roccobot.me](https://www.roccobot.me), [GitHub](https://github.com/Roccobot), [Telegram](https://t.me/roccobot)), as an independent community project. The renderers come from the ArtCraft team, from Tangency Labs for SolidCraft, and from their contributors, and keep their original licenses and notices. [Upstream releases and credits](THIRD_PARTY.md)
+CraftLook is made with ♥ by Rocco 'Roccobot' Casadei ([www.roccobot.me](https://www.roccobot.me), [GitHub](https://github.com/Roccobot), [Telegram](https://t.me/roccobot)), as an independent community project. The renderers come from the ArtCraft team, from Tangency Labs for SolidCraft, and from their contributors, and keep their original licenses and notices. [Upstream releases and credits](THIRD_PARTY.md)
 
 ## License
 

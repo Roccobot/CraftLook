@@ -64,20 +64,32 @@
 ## 🪟 La finestra
 
 - **Una finestra sola, di introduzione e impostazioni** (`Sources/Intro.swift`, in inglese): cosa fa
-  CraftLook, gli aggiornamenti, il pulsante *Open System Preferences* e la firma. La colonna di testo
-  è larga 400 punti con 40 punti di margine per lato, perché nessuna riga tocchi i bordi (difetto
-  segnalato dall'utente il 2026-11-22); `Tests/WindowSnapshot.swift` la disegna fuori dallo schermo,
-  nei due temi, e fallisce se una riga oltrepassa i margini.
+  CraftLook, gli aggiornamenti, il pulsante *Open System Preferences* e la firma. Testi, pulsanti e
+  immagini stanno a 40 punti dai bordi, in una colonna di testo di 400 (difetto segnalato
+  dall'utente il 2026-11-22); `Tests/WindowSnapshot.swift` la disegna fuori dallo schermo, nei due
+  temi, e fallisce se uno di loro oltrepassa i margini.
+- **Composta secondo Liquid Glass** (richiesta dell'utente del 2026-11-22; guida di Apple, 'Materials'):
+  il contenuto sta sul materiale della finestra, da bordo a bordo sotto una barra del titolo
+  trasparente (`Intro.style`), e il vetro è solo dei controlli, raccolti in due pannelli
+  (`NSGlassEffectView` dentro un `NSGlassEffectContainerView`, da macOS 26) a 24 punti dai bordi,
+  con l'angolo concentrico ai pulsanti a capsula: 16 punti di margine interno più 12 di raggio del
+  pulsante. Prima di macOS 26 i pannelli usano un materiale standard (`NSVisualEffectView`,
+  `.popover`) con la stessa forma. Le icone di GitHub e Telegram restano semplici: la guida vuole
+  il vetro solo sui controlli più importanti.
+- **Lo snapshot fuori dallo schermo non ha uno sfondo dietro la finestra**, quindi il vetro vi appare
+  senza rifrazione: la resa vera si vede solo con la finestra aperta.
 - ***Open System Preferences*** **è l'etichetta scelta dall'utente** (2026-11-22), anche se da macOS 13
   l'app si chiama Impostazioni di Sistema. Apre
   `x-apple.systempreferences:com.apple.ExtensionsPreferences`: il pannello Estensioni fino a macOS 14,
   e da macOS 15 Elementi login ed estensioni, che risponde allo stesso nome (`url_alias` del pannello,
   letto su macOS 27.2.1); se il nome non risponde più, si apre Impostazioni di Sistema.
-- **In calce la firma dell'utente** (sua richiesta del 2026-11-22): *Made with love by Rocco
-  'Roccobot' Casadei* col suo marchio, poi `www.roccobot.me` e le icone di GitHub e Telegram. Il
+- **In calce la firma dell'utente** (sue richieste del 2026-11-22): *Made with* col cuore U+2665 *by
+  Rocco 'Roccobot' Casadei* e il suo marchio, poi `www.roccobot.me` e le icone di GitHub e Telegram. Il
   marchio è `Resources/tian.svg`, copiato byte per byte da `design/assets/mark/tian-turchese.svg`
-  dell'hub e mai modificato (`rules/Roccobot.md`, il kanji U+5929); colori dal design system,
-  petrolio sul chiaro e turchese sullo scuro per il marchio, `testo-accento` per il link. Le PDF che
+  dell'hub e mai modificato (`rules/Roccobot.md`, il kanji U+5929). Nel tema chiaro marchio e link
+  hanno il verde petrolio scuro del fondo dell'icona dell'app, `#03484F` (scelta dell'utente, preso
+  da `docs/images/kingfisher.png`); nel tema scuro il marchio è turchese e il link `testo-accento`
+  del design system. Le PDF che
   l'app disegna le scrive `scripts/icons.py`, perché macOS 13 non legge le immagini SVG. La stessa
   firma è nel pannello Informazioni, e `NSHumanReadableCopyright` dice `© 2026 Rocco Casadei, a.k.a.
   Roccobot`.

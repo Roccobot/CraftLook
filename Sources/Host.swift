@@ -25,6 +25,7 @@ final class Host: NSObject, NSApplicationDelegate {
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: Intro.column + 2 * Intro.margin, height: 10), styleMask: [.titled, .closable],
                               backing: .buffered, defer: false)
         window.title = "CraftLook"
+        Intro.style(window)
         window.contentView = intro.view()
         window.setContentSize(window.contentView!.fittingSize)
         window.center()
