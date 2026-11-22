@@ -287,6 +287,9 @@ Un file più specifico vince **dove parla**, e il suo silenzio non è una deroga
   e versione').
 - **Build e prove solo su macOS, con gli strumenti di Xcode**: `scripts/prepare_renderers.py`,
   `build.sh` e `Tests/check.py` (`Rules.md` § '🧰 Build e prove').
+- **Le dipendenze sono i quattro renderer**, con versione e SHA-256 in `scripts/prepare_renderers.py`
+  e il registro in `docs/Dependencies.json`, che il flusso `dependencies.yml` controlla ogni lunedì
+  (`Rules.md` § '🔗 Le dipendenze').
 - **Il martin pescatore non si tocca**: l'icona e le sue immagini sono fuori dalla licenza MIT del
   codice (`ARTWORK.md`), e si usano così come sono; i renderer tengono le licenze dei progetti
   originali (`THIRD_PARTY.md`) (`Rules.md` § '⚖️ Licenze e illustrazione').

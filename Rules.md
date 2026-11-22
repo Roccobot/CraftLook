@@ -38,6 +38,16 @@
   l'editor sulle fixture sintetiche: la scelta del composito e il rifiuto dei file corrotti, senza
   immagine o oltre i limiti.
 
+## 🔗 Le dipendenze
+
+- **I quattro renderer sono le dipendenze del progetto**: la versione in uso e lo SHA-256 del loro
+  archivio vivono in `RENDERERS` di `scripts/prepare_renderers.py`, il registro è
+  `docs/Dependencies.json`, e il flusso `dependencies.yml` li confronta ogni lunedì con l'ultima
+  release, aprendo la issue `Dipendenze da leggere` se ce n'è una nuova (`rules/Roccobot.md`
+  § '🔗 Le dipendenze si seguono: ogni versione nuova si legge').
+- **Un renderer nuovo entra con la sua versione e lo SHA-256 in `RENDERERS`**, la versione nei due
+  README e una build provata sul Mac.
+
 ## ⚖️ Licenze e illustrazione
 
 - **Il codice, gli script e le prove sono MIT** (`LICENSE`).
