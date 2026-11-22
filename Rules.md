@@ -30,8 +30,8 @@
 
 ## 🧰 Build e prove
 
-- **Solo su macOS, con gli strumenti di Xcode e Python 3**: i comandi sono nella sezione 'Build e
-  controlli' del README. Un contenitore Linux non compila il progetto.
+- **Solo su macOS, con gli strumenti di Xcode e Python 3**: i comandi sono nel README, sezione
+  `Build e controlli` di `README.it.md`. Un contenitore Linux non compila il progetto.
 - `build.sh <cartella di build> [cartella dei renderer]`: senza il secondo argomento costruisce la
   variante che legge solo le anteprime già contenute nei file.
 - `Tests/check.py`, con l'eseguibile di `Tests/RenderCheck.swift`, prova la decodifica senza
