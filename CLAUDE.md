@@ -9,4 +9,6 @@
 
 - Il protocollo di avvio di Claude (permessi, hook, domande iniziali, brief) vive in `Rules.md`
   del repo `roccobot.github.io`, che è l'hub, § '🚀 Protocollo di avvio'.
-- Questo repo non ha skill proprie: non esiste una cartella `.claude/`.
+- Le skill del repo vivono in `.agents/skills`, e `.claude/skills` è il collegamento che le mostra
+  a Claude Code. Quelle della mappa (`setup-matt-pocock-skills`, `wayfinder` e le skill che chiama)
+  sono collegamenti alle skill dell'hub, che va clonato accanto a questo repo, come per gli hook.
