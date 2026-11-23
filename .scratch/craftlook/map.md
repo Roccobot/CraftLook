@@ -37,6 +37,9 @@ dalla settimana del 2026-11-30, parte senza dubbi aperti.
   - su Windows e Linux un avviso quando esce una versione nuova (`Aggiorna-02`); macOS resta su
     Sparkle;
   - prove su Windows e Linux solo con GitHub Actions (`Prove-02`).
+  - la notarizzazione di macOS si fa da un DMG invece che da uno ZIP, che triplica i renderer
+    collegati fisicamente: l'invio ad Apple scende da circa 2,3 GB a circa 300 MB (Rocco,
+    2026-11-23; miglioria della verifica della 0.5.0).
 - **Fatti già accertati** (2026-11-23):
   - le CLI dei renderer sono nei pacchetti Linux (`bin/<app>-cli` nel `.tar.gz`) e Windows
     (`<app>-cli.exe` nel portabile `.zip`) di ogni app ArtCraft, per x86_64, aarch64, x64 e arm64;
@@ -65,6 +68,9 @@ dalla settimana del 2026-11-30, parte senza dubbi aperti.
 
 - La destinazione e le scelte dell'intervista di partenza: decise da Rocco il 2026-11-23 (Notes,
   sopra).
+- [Le correzioni della 0.5.1](issues/07-correzioni-della-0-5-1.md): pubblicata il 2026-11-23 con
+  tutte le correzioni tranne memoria della coda e scala dei render, che vanno alla 0.6.0 insieme
+  alle migliorie elencate nel ticket.
 
 ## Not yet specified
 
