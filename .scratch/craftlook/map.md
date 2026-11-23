@@ -56,6 +56,8 @@ dalla settimana del 2026-11-30, parte senza dubbi aperti.
 - **Nessuna scelta di design senza Rocco**: forma, comportamento visibile e testi si propongono e
   si chiedono. La finestra di macOS, la firma di Rocco e il martin pescatore non si toccano
   (`Rules.md` § '🪟 La finestra' e § '⚖️ Licenze e illustrazione').
+- **Le sei ricerche partono alla ripresa** (scelta `Ricerche-02` di Rocco, 2026-11-23): la mappa
+  si è fermata dopo la mappatura, e lo sviluppo comincia la settimana del 2026-11-30.
 - ⚠️ **I risultati delle ricerche vivono in `.scratch/craftlook/research/`**, committati su
   `main`, come in Haul: così la mappa li cita con un collegamento che resta valido.
 
