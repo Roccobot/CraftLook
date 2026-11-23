@@ -27,6 +27,13 @@ import CoreGraphics
             print([(0, 0), (w, 0), (0, h), (w, h)].map { hex(target, $0.0, $0.1) }.joined(separator: " "))
             return
         }
+        if arguments[1] == "--svg-resources" {
+            // The same-folder files an SVG would hand to the renderer, as the extension collects them.
+            let file = URL(fileURLWithPath: arguments[2])
+            let found = SVGResource.contents(in: try Data(contentsOf: file), nextTo: file, limit: 32 << 20)
+            print(found.keys.sorted().joined(separator: " "))
+            return
+        }
         do {
             let image = try DocumentImage.load(URL(fileURLWithPath: arguments[1]))
             let pixel = context(1, 1)

@@ -30,7 +30,7 @@ Select an ArtCraft project in Finder and press **Space** to see what's inside, w
 | DesignCraft | `.designcraft` | A rendered design, with the saved preview as a fallback. |
 | VectorCraft | `.vectorcraft` | The first artboard from an embedded PDF, a saved preview, or a freshly rendered artboard. Gzip-compressed projects are supported. |
 | TextureCraft | `.tcraft` | The saved thumbnail or a rendered view of the project. |
-| PhotoCraft | `.pcraft` | The best available saved composite or thumbnail, from a project archive or package. |
+| PhotoCraft | `.pcraft` | The best available saved composite or thumbnail. |
 | SolidCraft | `.sc`, `.solidcraft` | A rendered view of the design, without the ground grid and the axes. |
 | FilmCraft | `.fcproj` | The frame of the active sequence at the saved playhead. A green rounded rectangle takes the place of each picture Quick Look can't read. |
 | MaterialCraft | `.mcraft` | The material rendered on the app's 3D scene. |
@@ -43,8 +43,8 @@ PdfCraft works on standard PDF files, which macOS previews by itself.
 
 ## Install
 
-1. Download the ZIP from the [latest release](https://github.com/Roccobot/CraftLook/releases/latest).
-2. Unzip it, move **CraftLook** into **Applications** and open it once.
+1. Download the `tar.xz` archive from the [latest release](https://github.com/Roccobot/CraftLook/releases/latest).
+2. Double-click it to decompress it, move **CraftLook** into **Applications** and open it once.
 3. In Finder, select a supported file and press **Space**.
 
 CraftLook updates itself (see [Updates](#updates)). It was called ArtCraft Quick Look up to version 0.2.5: if you have that app, delete it before installing CraftLook, so that the two don't handle the same files. To try it right away, download [River Study, a small VectorCraft project](https://raw.githubusercontent.com/Roccobot/CraftLook/main/examples/river-study.vectorcraft) and keep its `.vectorcraft` extension.
@@ -88,19 +88,21 @@ python3 scripts/prepare_renderers.py "$PWD/engines"
 
 The result is `build/CraftLook.app`. To use previously downloaded upstream ZIPs, pass `--archives /path/to/archives` to the Python script. For a smaller build that reads only embedded previews and has no updates, run `./build.sh "$PWD/build-embedded"` in a fresh build directory.
 
-After building, run the document-reader checks with these commands.
+After building, run the document-reader and release-script checks with these commands.
 
 ```sh
-xcrun swiftc Sources/Archive.swift Sources/DocumentImage.swift Sources/Drawing.swift Sources/Timeline.swift Tests/RenderCheck.swift -o build/rendercheck
+xcrun swiftc Sources/Archive.swift Sources/DocumentImage.swift Sources/Drawing.swift Sources/Timeline.swift Sources/SVGResource.swift Tests/RenderCheck.swift -o build/rendercheck
 python3 Tests/check.py build/rendercheck
+python3 Tests/scripts_check.py
 ```
 
-The renderer checks write a small project for each format that only a renderer can show, with that renderer's own command-line tool, then render them.
+The renderer checks write a small project for each format that only a renderer can show, with that renderer's own command-line tool, then render them; the last one checks that a renderer past its time limit is stopped with everything it started.
 
 ```sh
 python3 Tests/samples.py "$PWD/engines" build/samples
 xcrun swiftc -parse-as-library Sources/Archive.swift Sources/DocumentImage.swift Sources/Drawing.swift Sources/Timeline.swift Sources/RenderXPC.swift Sources/SVGResource.swift Sources/HeadlessRenderer.swift Tests/HeadlessCheck.swift -o build/headlesscheck
 build/headlesscheck "build/CraftLook.app/Contents/Helpers" build/samples/* examples/river-study.vectorcraft
+build/headlesscheck --timeout
 ```
 
 The service check sends the same files to the app's renderer service, in its sandbox, all at once, and expects a picture for each.

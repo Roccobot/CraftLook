@@ -37,11 +37,12 @@ enum RenderXPC {
     /// that is the large view, otherwise the image saved in the file, otherwise the renderer.
     static func picture(_ file: URL, maxSide: Int, service: String) throws -> CGImage {
         let ext = file.pathExtension.lowercased()
-        if rendersFirst(ext, maxSide: maxSide), let image = render(file, maxSide: maxSide, service: service) {
-            return image
-        }
+        // A render that has failed once is not tried again: before 0.5.1 a FigCraft or DesignCraft
+        // file the renderer couldn't draw cost two full waits on Space.
+        let first = rendersFirst(ext, maxSide: maxSide)
+        if first, let image = render(file, maxSide: maxSide, service: service) { return image }
         if let embedded = try? DocumentImage.load(file, maxSide: maxSide) { return embedded }
-        if let image = render(file, maxSide: maxSide, service: service) { return image }
+        if !first, let image = render(file, maxSide: maxSide, service: service) { return image }
         throw ReadError.unavailable
     }
 

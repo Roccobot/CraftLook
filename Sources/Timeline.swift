@@ -11,24 +11,35 @@ enum Timeline {
     private struct Track { let name: String; let color: CGColor; let muted: Bool; let clips: [Clip] }
     private static let ticksPerBeat = 960.0
     private static let side: CGFloat = 1600
+    /// The longest session drawn: a day. Times past it are drawn at its end, so that no value a file
+    /// holds can push a conversion to Int out of range (choice Scraft-01: a session with impossible
+    /// values is still drawn, with each value brought into a sensible range).
+    private static let longestSession = 86_400.0
+
+    /// `value` brought into `range`: what a session file says is never trusted to be sensible.
+    private static func bounded(_ value: Double, _ range: ClosedRange<Double>) -> Double {
+        min(range.upperBound, max(range.lowerBound, value))
+    }
 
     static func image(_ data: Data, maxSide: Int) throws -> CGImage {
         guard let root = try JSONSerialization.jsonObject(with: data) as? [String: Any],
               root["format_version"] is Int, let rawTracks = root["tracks"] as? [[String: Any]],
-              let rate = number(root["sample_rate"]), rate > 0 else { throw ReadError.invalid }
+              let rawRate = number(root["sample_rate"]), rawRate > 0 else { throw ReadError.invalid }
+        let rate = bounded(rawRate, 8_000...768_000)
         let tempo = root["tempo"] as? [String: Any]
-        let bpm = number((tempo?["tempos"] as? [[String: Any]])?.first?["bpm"]).flatMap { $0 > 0 ? $0 : nil } ?? 120
+        let bpm = bounded(number((tempo?["tempos"] as? [[String: Any]])?.first?["bpm"]).flatMap { $0 > 0 ? $0 : nil } ?? 120, 10...999)
         let meter = (tempo?["meters"] as? [[String: Any]])?.first
-        let beats = number(meter?["numerator"]).flatMap { $0 > 0 ? $0 : nil } ?? 4
-        let unit = number(meter?["denominator"]).flatMap { $0 > 0 ? $0 : nil } ?? 4
+        let beats = bounded(number(meter?["numerator"]).flatMap { $0 > 0 ? $0 : nil } ?? 4, 1...64)
+        let unit = bounded(number(meter?["denominator"]).flatMap { $0 > 0 ? $0 : nil } ?? 4, 1...64)
+        let limit = longestSession * rate
         let samplesPerTick = 60 / bpm * rate / ticksPerBeat
 
-        let tracks = rawTracks.prefix(256).compactMap { track(from: $0, samplesPerTick: samplesPerTick) }.prefix(64)
+        let tracks = rawTracks.prefix(256).compactMap { track(from: $0, samplesPerTick: samplesPerTick, limit: limit) }.prefix(64)
         let markers = ((root["markers"] as? [[String: Any]]) ?? []).prefix(512).compactMap { m -> (Double, String)? in
             guard let start = number(m["start"]), start >= 0 else { return nil }
-            return (start, m["name"] as? String ?? "")
+            return (min(start, limit), m["name"] as? String ?? "")
         }
-        let playhead = number((root["edit"] as? [String: Any])?["playhead"])
+        let playhead = number((root["edit"] as? [String: Any])?["playhead"]).map { min($0, limit) }
         let end = max(rate, ([0] + tracks.flatMap { $0.clips.map { $0.start + $0.length } } + markers.map { $0.0 }).max()!) * 1.03
 
         // The layout, in points of a square card 1600 points wide: the lanes fill the height under the ruler,
@@ -153,22 +164,25 @@ enum Timeline {
         }
     }
 
-    private static func track(from raw: [String: Any], samplesPerTick: Double) -> Track? {
+    private static func track(from raw: [String: Any], samplesPerTick: Double, limit: Double) -> Track? {
         guard raw["hidden"] as? Bool != true else { return nil }
         let playlists = raw["playlists"] as? [[String: Any]] ?? []
         let active = raw["active_playlist"] as? Int ?? 0
         let clips = ((playlists.indices.contains(active) ? playlists[active]["clips"] : nil) as? [[String: Any]] ?? [])
             .prefix(4000).compactMap { c -> Clip? in
-                guard let start = number(c["start"]), let length = number(c["length"]), start >= 0, length > 0 else { return nil }
+                guard let rawStart = number(c["start"]), let rawLength = number(c["length"]), rawStart >= 0, rawLength > 0
+                else { return nil }
+                let start = min(rawStart, limit), length = min(rawLength, limit)
                 let midi = ((c["content"] as? [String: Any])?["Midi"] as? [String: Any])?["sequence"] as? [String: Any]
                 let notes = ((midi?["notes"] as? [[String: Any]]) ?? []).prefix(8000).compactMap { n -> (Double, Double, Int)? in
                     guard let s = number(n["start"]), let l = number(n["length"]), let p = n["pitch"] as? Int,
-                          s >= 0, s * samplesPerTick < length else { return nil }
-                    return (s * samplesPerTick, l * samplesPerTick, p)
+                          s >= 0, l >= 0, s * samplesPerTick < length else { return nil }
+                    // MIDI pitches run from 0 to 127.
+                    return (s * samplesPerTick, min(l * samplesPerTick, length), max(0, min(127, p)))
                 }
                 return Clip(start: start, length: length, name: c["name"] as? String ?? "", muted: c["muted"] as? Bool == true,
-                            fadeIn: number((c["fade_in"] as? [String: Any])?["len"]) ?? 0,
-                            fadeOut: number((c["fade_out"] as? [String: Any])?["len"]) ?? 0, notes: notes)
+                            fadeIn: max(0, number((c["fade_in"] as? [String: Any])?["len"]) ?? 0),
+                            fadeOut: max(0, number((c["fade_out"] as? [String: Any])?["len"]) ?? 0), notes: notes)
             }
         let kind = raw["kind"] as? String ?? ""
         guard !clips.isEmpty || ["Audio", "Instrument", "Midi"].contains(kind) else { return nil }

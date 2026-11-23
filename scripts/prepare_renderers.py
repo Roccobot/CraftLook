@@ -17,7 +17,7 @@ RENDERERS = {
     "designcraft": ("0.20.1", "a178783b31e1af48f7af2b516568ec85537a484dfbcc5057b0f03cadee90c0ab", "storytold/designcraft"),
     "vectorcraft": ("0.24.1", "7f0c8261e5c831d9681e48272f9ba73bf8702dbf6ceb84f98177c7c007faddf2", "storytold/vectorcraft"),
     "texturecraft": ("0.6.1", "80a65494a740d100797d54a55c43ff32ee40ee19678eebae8200f52cbba33bdc", "storytold/texturecraft"),
-    "solidcraft": ("0.46.2", "c46a6a5ac3068c9de75195b2235d8be6d90024d3426de5fc0f3967065477445b", "tangency-labs/solidcraft"),
+    "solidcraft": ("0.47.0", "6b0a3419e313f45faf7cb4b644c9af6652bb66929e7bec67ccb105e81b2f4758", "tangency-labs/solidcraft"),
     "filmcraft": ("0.20.1", "1651d9defb54f853cbd69016428bb9f72a7bf26d56e4755b8e2a79535fd0ac82", "storytold/filmcraft"),
     "materialcraft": ("0.4.1", "bcf0e87191dfca39ba14c8110823b21ed5bc5078ad7ae8e4cff380d83fec6edc", "storytold/materialcraft"),
     "effectcraft": ("0.24.1", "2781eda194372ad47f4c0c7df8b1d38501a3e90bb499282f57e9598a85958673", "storytold/effectcraft"),
@@ -86,13 +86,20 @@ def prepare(output, archives, product, version, expected, repo):
         thin_to_arm64(stage / executable)
         target = output / product
         if target.exists():
-            # Re-running against a prepared directory is safe. Keep user-edited
-            # files intact if an existing directory belongs to another build.
-            # A directory prepared before 0.5.0 may still hold a universal CLI: thin it first.
-            thin_to_arm64(target / executable)
+            # Re-running against a prepared directory is safe, and a directory that belongs to another
+            # build is left untouched. One prepared before 0.5.0 may still hold a universal CLI: it is
+            # compared through a thinned copy, and only replaced once it is known to be the same renderer.
+            existing = scratch / "existing-cli"
+            if (target / executable).is_file():
+                shutil.copy2(target / executable, existing)
+                thin_to_arm64(existing)
             paths = [item.relative_to(stage) for item in stage.rglob("*") if item.is_file()]
-            if not all((target / p).is_file() and checksum(target / p) == checksum(stage / p) for p in paths):
+            def same(p):
+                mine = existing if str(p) == executable else target / p
+                return mine.is_file() and checksum(mine) == checksum(stage / p)
+            if not all(same(p) for p in paths):
                 raise ValueError(f"{target} contains a different renderer. Choose another output directory.")
+            existing.replace(target / executable)
             (target / executable).chmod(0o755)
         else:
             stage.rename(target)
@@ -103,10 +110,12 @@ def prepare_sparkle(output, archives, version, expected, repo):
     """Sparkle.framework (arm64 slice), sign_update and generate_keys for scripts/release.sh, and the license."""
     filename = f"Sparkle-{version}.tar.xz"
     target = output / "sparkle"
+    # The folder records the version and the SHA-256 of the archive it came from: a folder from another
+    # archive, even of the same version, is never reused.
+    stamp = f"{version}\n{expected}\n"
     if (target / "VERSION").is_file():
-        if (target / "VERSION").read_text().strip() != version:
+        if (target / "VERSION").read_text() != stamp:
             raise ValueError(f"{target} contains another Sparkle. Choose another output directory.")
-        thin_tree(target)
         print(f"sparkle {version} verified", flush=True)
         return
     with tempfile.TemporaryDirectory(dir=output) as tmp:
@@ -123,7 +132,7 @@ def prepare_sparkle(output, archives, version, expected, repo):
         # bsdtar keeps the framework's symbolic links.
         subprocess.run(["tar", "-xf", archive, "-C", stage, "./Sparkle.framework", "./bin/sign_update",
                         "./bin/generate_keys", "./LICENSE"], check=True)
-        (stage / "VERSION").write_text(version + "\n")
+        (stage / "VERSION").write_text(stamp)
         thin_tree(stage)
         stage.rename(target)
     print(f"sparkle {version} verified", flush=True)

@@ -1,10 +1,20 @@
 import Foundation
 
 enum SVGResource {
+    /// The names the renderer folders use for their own files: the copy of the document in the
+    /// service and in the renderer's scratch folder, and the picture it writes. A linked file with
+    /// one of these names, in any letter case (the file system ignores it), would replace them.
+    static let reserved: Set<String> = ["craftlook-input.svg", "craftlook-document.svg", "craftlook-output.png"]
+    /// At most this many linked files, this many bytes in all, and links looked for only in the
+    /// first bytes of the drawing, so that no SVG can make the extension read without end.
+    static let maxCount = 32
+    static let maxTotal = 64 << 20
+    static let scanLimit = 16 << 20
+
     /// Same-folder file names referenced by href or xlink:href in `data`. Names with a path,
     /// a scheme, a query, a fragment, or `..` are ignored, so a link cannot leave the folder.
     static func names(in data: Data) -> [String] {
-        let text = String(decoding: data, as: UTF8.self)
+        let text = String(decoding: data.prefix(scanLimit), as: UTF8.self)
         guard let regex = try? NSRegularExpression(pattern: #"(?:xlink:)?href\s*=\s*["']([^"']+)["']"#,
                                                    options: [.caseInsensitive]) else { return [] }
         var seen = Set<String>()
@@ -21,7 +31,7 @@ enum SVGResource {
     /// A file name that stays in the same folder: no path, scheme, query, fragment, or parent.
     static func localName(_ raw: String) -> String? {
         let name = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !name.isEmpty, name != ".", name != "..",
+        guard !name.isEmpty, name != ".", name != "..", !reserved.contains(name.lowercased()),
               !name.contains("/"), !name.contains("\\"), !name.contains(":"),
               !name.contains("?"), !name.contains("#"), !name.contains("\0") else { return nil }
         return name
@@ -31,14 +41,16 @@ enum SVGResource {
     static func contents(in data: Data, nextTo file: URL, limit: Int) -> [String: Data] {
         let folder = file.deletingLastPathComponent().resolvingSymlinksInPath().standardizedFileURL
         var result: [String: Data] = [:]
-        for name in names(in: data) {
+        var total = 0
+        for name in names(in: data).prefix(maxCount) {
             let resolved = folder.appendingPathComponent(name).resolvingSymlinksInPath().standardizedFileURL
             guard resolved.deletingLastPathComponent() == folder,
                   resolved.lastPathComponent == name,
                   let props = try? resolved.resourceValues(forKeys: [.isRegularFileKey, .fileSizeKey]),
                   props.isRegularFile == true,
-                  let size = props.fileSize, (1...limit).contains(size),
+                  let size = props.fileSize, (1...limit).contains(size), total + size <= maxTotal,
                   let bytes = try? Data(contentsOf: resolved), bytes.count == size else { continue }
+            total += size
             result[name] = bytes
         }
         return result
@@ -47,8 +59,10 @@ enum SVGResource {
     /// Writes already-collected resources into `directory`, after checking the names again.
     static func write(_ resources: [String: Data], to directory: URL, limit: Int) throws {
         let folder = directory.resolvingSymlinksInPath().standardizedFileURL
-        for (name, bytes) in resources {
-            guard localName(name) == name, (1...limit).contains(bytes.count) else { continue }
+        var total = 0
+        for (name, bytes) in resources.sorted(by: { $0.key < $1.key }).prefix(maxCount) {
+            guard localName(name) == name, (1...limit).contains(bytes.count), total + bytes.count <= maxTotal else { continue }
+            total += bytes.count
             let dest = folder.appendingPathComponent(name).standardizedFileURL
             guard dest.deletingLastPathComponent() == folder else { continue }
             try bytes.write(to: dest)

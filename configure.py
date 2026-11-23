@@ -3,6 +3,10 @@ import sys
 from pathlib import Path
 
 app = Path(sys.argv[1])
+# Without renderers (build.sh with no renderer folder) the extensions read only the pictures saved in
+# the files: they must not claim the formats only a renderer can show, or Quick Look would send those
+# files to them instead of to macOS's own previews.
+embedded_only = '--embedded-only' in sys.argv[2:]
 bundle = 'com.roccobot.craftlook'
 PUBLIC_ED_KEY = 'iOrWlpw4J6LLf7J8WvKwKiECiEMDbMWJ183pypWdrk4='
 # The project types: UTI, extensions and conformance. SolidCraft, FilmCraft, MaterialCraft,
@@ -21,6 +25,13 @@ formats = {
 }
 # Types macOS declares itself, so they are only listed in the extensions.
 system_types = ['com.adobe.photoshop-image', 'public.svg-image']
+# The types whose picture CraftLook finds without a renderer: a saved image, an embedded PDF, a composite,
+# or the timeline it draws itself.
+readable = {'ai.storyteller.figcraft.document', 'ai.storyteller.designcraft.document',
+            'ai.storyteller.vectorcraft.document', 'ai.storyteller.texturecraft.project',
+            'ai.storyteller.photocraft.document', 'ai.storyteller.soundcraft.session',
+            'com.adobe.photoshop-image'}
+handled = [t for t in [*formats, *system_types] if not embedded_only or t in readable]
 def write(path, data):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(plistlib.dumps(data))
@@ -28,7 +39,7 @@ def write(path, data):
 def info(name, kind, identifier):
     return dict(CFBundleExecutable=name, CFBundleIdentifier=identifier, CFBundleName=name,
                 CFBundleDisplayName='CraftLook', CFBundlePackageType=kind,
-                CFBundleVersion='15', CFBundleShortVersionString='0.5.0',
+                CFBundleVersion='16', CFBundleShortVersionString='0.5.1',
                 CFBundleInfoDictionaryVersion='6.0', LSMinimumSystemVersion='13.0',
                 LSArchitecturePriority=['arm64'], LSRequiresNativeExecution=True,
                 CFBundleDevelopmentRegion='en', CFBundleSupportedPlatforms=['MacOSX'])
@@ -51,7 +62,7 @@ host['UTImportedTypeDeclarations'] = [
 write(app/'Contents/Info.plist', host)
 for name, point in [('Preview','preview'),('Thumbnail','thumbnail')]:
     p = info(name, 'XPC!', bundle+'.'+point)
-    attrs = dict(QLSupportedContentTypes=[*formats, *system_types])
+    attrs = dict(QLSupportedContentTypes=handled)
     if name == 'Preview':
         attrs.update(QLIsDataBasedPreview=True, QLSupportsSearchableItems=False)
     else:

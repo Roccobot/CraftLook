@@ -5,9 +5,9 @@ enum ReadError: LocalizedError {
     case invalid, limit, unavailable
     var errorDescription: String? {
         switch self {
-        case .invalid: "Il documento o l'immagine non è valido."
-        case .limit: "Il documento supera i limiti dell'anteprima."
-        case .unavailable: "Il documento non contiene un'anteprima disponibile."
+        case .invalid: "The document or its image is not valid."
+        case .limit: "The document exceeds the preview limits."
+        case .unavailable: "The document holds no usable preview."
         }
     }
 }

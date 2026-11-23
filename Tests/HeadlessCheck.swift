@@ -3,6 +3,7 @@ import CoreGraphics
 
 @main struct HeadlessCheck {
     static func main() throws {
+        if CommandLine.arguments[1] == "--timeout" { return try timeout() }
         let tools = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
         for path in CommandLine.arguments.dropFirst(2) {
             let file = URL(fileURLWithPath: path)
@@ -33,6 +34,36 @@ import CoreGraphics
             }
             print(String(format: "%@: %d × %d, %.2f s", file.lastPathComponent, image.width, image.height, seconds))
         }
+    }
+
+    /// A renderer that outlives its deadline is stopped with everything it started: a fake
+    /// MaterialCraft that leaves a child behind and then hangs, with a one-second deadline.
+    static func timeout() throws {
+        let fm = FileManager.default
+        let folder = fm.temporaryDirectory.appendingPathComponent("craftlook-timeout-" + UUID().uuidString)
+        try fm.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? fm.removeItem(at: folder) }
+        let pidFile = folder.appendingPathComponent("child.pid")
+        let fake = folder.appendingPathComponent("materialcraft-cli")
+        try "#!/bin/sh\n/bin/sleep 30 &\necho $! > '\(pidFile.path)'\n/bin/sleep 30\n".write(to: fake, atomically: true, encoding: .utf8)
+        try fm.setAttributes([.posixPermissions: 0o755], ofItemAtPath: fake.path)
+        let project = folder.appendingPathComponent("cube.mcraft")
+        try Data("{}".utf8).write(to: project)
+        let start = Date()
+        guard HeadlessRenderer.render(project, maxSide: 512, tools: folder, deadline: .now() + 1) == nil else {
+            throw failure("Il renderer finto ha prodotto un'immagine")
+        }
+        guard Date().timeIntervalSince(start) < 5,
+              let text = try? String(contentsOf: pidFile, encoding: .utf8),
+              let child = Int32(text.trimmingCharacters(in: .whitespacesAndNewlines)) else {
+            throw failure("Il renderer finto non si è fermato in tempo")
+        }
+        usleep(200_000)
+        if kill(child, 0) == 0 {
+            kill(child, SIGKILL)
+            throw failure("Il processo avviato dal renderer è ancora attivo dopo la scadenza")
+        }
+        print("timeout: renderer e processi figli fermati")
     }
 
     static func failure(_ message: String) -> Error {

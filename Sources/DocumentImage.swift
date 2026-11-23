@@ -22,25 +22,10 @@ enum DocumentImage {
         case "tcraft":
             return try zipped(url, marker: "project.json", images: ["thumbnail.png"], maxSide: maxSide)
         case "pcraft":
-            let paths = ["composite/full.png", "composite/preview.png", "thumb.png"]
-            if try url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory == true {
-                let root = url.resolvingSymlinksInPath().standardizedFileURL.path
-                func child(_ path: String) throws -> URL {
-                    let entry = url.appendingPathComponent(path).resolvingSymlinksInPath().standardizedFileURL
-                    guard entry.path == root + "/" + path,
-                          try entry.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile == true
-                    else { throw ReadError.invalid }
-                    return entry
-                }
-                _ = try child("manifest.json")
-                for path in paths {
-                    if let entry = try? child(path),
-                       let bytes = try? prefix(entry, limit: imageLimit, whole: true),
-                       let pic = try? decode(bytes, maxSide: maxSide) { return pic }
-                }
-                throw ReadError.unavailable
-            }
-            return try zipped(url, marker: "manifest.json", images: paths, maxSide: maxSide)
+            // PhotoCraft declares .pcraft as a plain file (public.data), never a package, so Quick Look
+            // only ever hands over the archive.
+            return try zipped(url, marker: "manifest.json",
+                              images: ["composite/full.png", "composite/preview.png", "thumb.png"], maxSide: maxSide)
         case "vectorcraft":
             let data = try prefix(url, limit: vectorLimit)
             let isGzip = data.starts(with: [0x1f, 0x8b])

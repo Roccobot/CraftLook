@@ -30,7 +30,7 @@ Seleziona un progetto ArtCraft nel Finder e premi **Spazio** per vederne il cont
 | DesignCraft | `.designcraft` | Il progetto disegnato dal renderer, con l'anteprima salvata come riserva. |
 | VectorCraft | `.vectorcraft` | La prima tavola di un PDF incorporato, un'anteprima salvata o una tavola appena disegnata. Sono supportati i progetti compressi con gzip. |
 | TextureCraft | `.tcraft` | La miniatura salvata o una vista del progetto disegnata dal renderer. |
-| PhotoCraft | `.pcraft` | Il miglior composito o la miglior miniatura salvati, da un archivio o da un pacchetto di progetto. |
+| PhotoCraft | `.pcraft` | Il miglior composito o la miglior miniatura salvati. |
 | SolidCraft | `.sc`, `.solidcraft` | Una vista del progetto disegnata dal renderer, senza la griglia del piano e gli assi. |
 | FilmCraft | `.fcproj` | Il fotogramma della sequenza attiva sotto la testina di riproduzione salvata. Un rettangolo verde arrotondato prende il posto di ogni immagine che Quick Look non può leggere. |
 | MaterialCraft | `.mcraft` | Il materiale disegnato sulla scena 3D dell'app. |
@@ -43,8 +43,8 @@ PdfCraft lavora sui normali file PDF, che macOS mostra da sé.
 
 ## Installazione
 
-1. Scarica lo ZIP dall'[ultima release](https://github.com/Roccobot/CraftLook/releases/latest).
-2. Estrai l'archivio, sposta **CraftLook** in **Applicazioni** e aprila una volta.
+1. Scarica l'archivio `tar.xz` dall'[ultima release](https://github.com/Roccobot/CraftLook/releases/latest).
+2. Fai doppio clic per estrarlo, sposta **CraftLook** in **Applicazioni** e aprila una volta.
 3. Nel Finder seleziona un file compatibile e premi **Spazio**.
 
 CraftLook si aggiorna da sé (vedi [Aggiornamenti](#aggiornamenti)). Fino alla versione 0.2.5 si chiamava ArtCraft Quick Look: se hai quell'app, cancellala prima di installare CraftLook, perché le due non gestiscano gli stessi file. Per provarla subito, scarica [River Study, un piccolo progetto VectorCraft](https://raw.githubusercontent.com/Roccobot/CraftLook/main/examples/river-study.vectorcraft) e tieni l'estensione `.vectorcraft`.
@@ -88,19 +88,21 @@ python3 scripts/prepare_renderers.py "$PWD/engines"
 
 Il risultato è `build/CraftLook.app`. Per usare gli ZIP originali già scaricati, passa `--archives /percorso/degli/archivi` allo script Python. Per una build più piccola, che legge solo le anteprime incorporate e non si aggiorna, esegui `./build.sh "$PWD/build-embedded"` in una cartella di build nuova.
 
-Dopo la build, esegui i controlli della lettura dei documenti con questi comandi.
+Dopo la build, esegui i controlli della lettura dei documenti e degli script di rilascio con questi comandi.
 
 ```sh
-xcrun swiftc Sources/Archive.swift Sources/DocumentImage.swift Sources/Drawing.swift Sources/Timeline.swift Tests/RenderCheck.swift -o build/rendercheck
+xcrun swiftc Sources/Archive.swift Sources/DocumentImage.swift Sources/Drawing.swift Sources/Timeline.swift Sources/SVGResource.swift Tests/RenderCheck.swift -o build/rendercheck
 python3 Tests/check.py build/rendercheck
+python3 Tests/scripts_check.py
 ```
 
-I controlli dei renderer scrivono un piccolo progetto per ogni formato che solo un renderer può mostrare, con lo strumento a riga di comando di quel renderer, poi li disegnano.
+I controlli dei renderer scrivono un piccolo progetto per ogni formato che solo un renderer può mostrare, con lo strumento a riga di comando di quel renderer, poi li disegnano; l'ultimo controlla che un renderer oltre il suo tempo si fermi insieme a tutto quello che ha avviato.
 
 ```sh
 python3 Tests/samples.py "$PWD/engines" build/samples
 xcrun swiftc -parse-as-library Sources/Archive.swift Sources/DocumentImage.swift Sources/Drawing.swift Sources/Timeline.swift Sources/RenderXPC.swift Sources/SVGResource.swift Sources/HeadlessRenderer.swift Tests/HeadlessCheck.swift -o build/headlesscheck
 build/headlesscheck "build/CraftLook.app/Contents/Helpers" build/samples/* examples/river-study.vectorcraft
+build/headlesscheck --timeout
 ```
 
 Il controllo del servizio manda gli stessi file al servizio dei renderer dell'app, nella sua sandbox, tutti insieme, e vuole un'immagine per ognuno.

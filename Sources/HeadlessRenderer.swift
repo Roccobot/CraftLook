@@ -22,8 +22,8 @@ enum HeadlessRenderer {
                                    attributes: [.posixPermissions: 0o700])
             defer { try? fm.removeItem(at: scratch) }
             // A subprocess doesn't inherit the file access macOS granted for this individual request.
-            let input = scratch.appendingPathComponent("document." + ext)
-            let output = scratch.appendingPathComponent("preview.png")
+            let input = scratch.appendingPathComponent("craftlook-document." + ext)
+            let output = scratch.appendingPathComponent("craftlook-output.png")
             phase = "input"
             try fm.copyItem(at: file, to: input)
             if ext == "svg", let data = try? Data(contentsOf: file) {
@@ -86,9 +86,14 @@ enum HeadlessRenderer {
         }
     }
 
-    /// Runs a renderer until it ends or the deadline passes; whether it ended with status 0.
+    /// Runs a renderer until it ends or the deadline passes; whether it ended with status 0. Its error
+    /// output goes to a file in the scratch folder, whose end is logged when the render fails.
     private static func launch(_ executable: URL, _ args: [String], in scratch: URL, deadline: DispatchTime,
                                name: String) throws -> Bool {
+        let errors = scratch.appendingPathComponent("craftlook-stderr.txt")
+        FileManager.default.createFile(atPath: errors.path, contents: nil, attributes: [.posixPermissions: 0o600])
+        let errorOutput = try FileHandle(forWritingTo: errors)
+        defer { try? errorOutput.close() }
         let process = Process()
         process.executableURL = executable
         process.arguments = args
@@ -97,7 +102,7 @@ enum HeadlessRenderer {
                                "VECTORCRAFT_NO_PREFS": "1"]
         process.standardInput = FileHandle.nullDevice
         process.standardOutput = FileHandle.nullDevice
-        process.standardError = FileHandle.nullDevice
+        process.standardError = errorOutput
         let ended = DispatchSemaphore(value: 0)
         process.terminationHandler = { _ in ended.signal() }
         try process.run()
@@ -105,14 +110,25 @@ enum HeadlessRenderer {
             process.terminate()
             if ended.wait(timeout: .now() + 0.25) == .timedOut { _ = kill(process.processIdentifier, SIGKILL) }
             process.waitUntilExit()
-            log.error("\(name, privacy: .public) timed out")
+            log.error("\(name, privacy: .public) timed out\(tail(errors), privacy: .public)")
             return false
         }
         guard process.terminationStatus == 0 else {
-            log.error("\(name, privacy: .public) exited with status \(process.terminationStatus)")
+            log.error("\(name, privacy: .public) exited with status \(process.terminationStatus)\(tail(errors), privacy: .public)")
             return false
         }
         return true
+    }
+
+    /// The last few hundred bytes a renderer wrote to its error output, for the log.
+    private static func tail(_ file: URL) -> String {
+        guard let handle = try? FileHandle(forReadingFrom: file) else { return "" }
+        defer { try? handle.close() }
+        let size = (try? handle.seekToEnd()) ?? 0
+        try? handle.seek(toOffset: size > 600 ? size - 600 : 0)
+        let text = String(decoding: (try? handle.readToEnd()) ?? Data(), as: UTF8.self)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return text.isEmpty ? "" : ": " + text
     }
 
     /// The VectorCraft scale that brings an SVG's longest side to maxSide, from the width, height or

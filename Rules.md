@@ -30,9 +30,20 @@
   con un riquadro fisso che ritagliava il disegno. Dalla 0.5.0 l'estensione delle anteprime chiama
   il proprio servizio, come quella delle miniature. Fino alla build `10` del 2026-11-22 ogni
   estensione aveva la sua copia completa dei renderer, e l'app pesava 3,1 GB.
-- **Il servizio mette in coda le richieste**: due renderer alla volta, e chi aspetta resta in coda
-  fino ai 12 secondi che un render ha comunque, invece di essere respinto (il Finder chiede molte
-  miniature insieme). `Tests/service_check.sh` lo prova con richieste in parallelo.
+- **Il servizio mette in coda le richieste**: due renderer alla volta per servizio, quindi fino a
+  quattro con miniature e anteprime insieme, e chi aspetta resta in coda invece di essere respinto
+  (il Finder chiede molte miniature insieme). Un render ha 12 secondi dalla richiesta, e una
+  richiesta che trova posto con meno di 3 secondi rimasti rinuncia invece di avviare un renderer
+  che verrebbe fermato subito (0.5.1). `Tests/service_check.sh` lo prova con richieste in parallelo.
+- **Allo scadere il renderer si ferma con tutto quello che ha avviato**, e la fine di quello che ha
+  scritto come errore va nel registro di sistema (0.5.1); `build/headlesscheck --timeout` lo prova
+  con un renderer finto che lascia un processo figlio.
+- **Un render fallito non si ripete**: FigCraft e DesignCraft, che in grande chiedono prima il
+  renderer, ripiegano sull'immagine salvata senza un secondo tentativo (0.5.1).
+- **Una sessione di SoundCraft con valori impossibili si disegna comunque** (scelta `Scraft-01`
+  dell'utente del 2026-11-23): frequenza, tempo, misura, tempi e altezze delle note si riportano in
+  un intervallo sensato, e una sessione più lunga di un giorno si disegna fino al suo primo giorno.
+  Fino alla 0.5.0 un valore enorme faceva cadere le estensioni.
 - **Un medium di FilmCraft che non si può leggere diventa un segnaposto**: un rettangolo arrotondato
   verde `#43B59E` della sua misura, al suo posto, ricollegato dalla CLI prima del render; se il
   render non riesce, il segnaposto copre il fotogramma (scelta dell'utente del 2026-11-22). Nella
@@ -40,8 +51,15 @@
 - **Un'immagine SVG collegata nella stessa cartella entra nel disegno**, se l'estensione può leggerla:
   solo un nome di file nella stessa cartella (`href` e `xlink:href`, senza percorso, schema, `..`,
   query o frammento), copiato accanto alla copia temporanea del documento. Se non si può leggere,
-  resta il segnaposto di VectorCraft. Un `clip-path` CSS non è applicato; se il font chiesto non
+  resta il segnaposto di VectorCraft. Al massimo 32 file e 64 MB in tutto, cercati nei primi 16 MB
+  del disegno; i nomi che il servizio usa per sé (`craftlook-input.svg`,
+  `craftlook-document.svg`, `craftlook-output.png`, in qualunque maiuscola) restano fuori, perché
+  prenderebbero il posto della copia del documento o del disegno (0.5.1). Un `clip-path` CSS non è applicato; se il font chiesto non
   c'è, VectorCraft usa Source Sans 3 (scelta dell'utente del 2026-11-22, 0.5.0).
+- **La variante senza renderer dichiara solo i formati che sa leggere da sola** (`configure.py
+  --embedded-only`, che `build.sh` usa quando manca la cartella dei renderer): FigCraft,
+  DesignCraft, VectorCraft, TextureCraft, PhotoCraft, SoundCraft e PSD. Gli SVG e i formati che
+  vogliono un renderer restano alle anteprime di macOS (0.5.1).
 - **Repo principale dal 2026-11-22** (scelta `Elenco-01` dell'utente, card `Pescatore`); la sessione
   titolare è `CraftWorks`, quella che lavora con le applicazioni della suite ArtCraft.
 
@@ -57,8 +75,8 @@
   'ArtCraft Quick Look', perché le due non mostrino gli stessi file.
 - **Versione SemVer**, con la fonte unica in `configure.py`: `CFBundleShortVersionString` è la
   versione mostrata, `CFBundleVersion` il numero di build, che sale di uno a ogni versione
-  pubblicata, non a ogni build provata. Al 2026-11-22 l'ultima pubblicata è `0.5.0` (`15`), quella
-  che porta `configure.py`. La `0.4.3` non è stata pubblicata: le sue correzioni SVG sono nella
+  pubblicata, non a ogni build provata. Al 2026-11-23 l'ultima pubblicata è `0.5.1` (`16`), quella
+  che porta `configure.py`, con le correzioni della verifica del 2026-11-23 (scelta `Ambito-01`). La `0.4.3` non è stata pubblicata: le sue correzioni SVG sono nella
   `0.5.0`, che è anche la prima solo per Apple silicon. La `0.3.0` (`10`) e la `0.3.1`
   (`11`) le ha provate solo l'utente sul suo Mac, e le loro novità sono nelle note della `0.4.0`.
   Le note sono una per versione pubblicata, in `docs/release-notes/`.
@@ -131,13 +149,16 @@
   `configure.py`); la voce *Check for Updates...* del menu e la casella della finestra, in inglese.
 - **L'appcast è un allegato di ogni release**: `SUFeedURL` è
   `https://github.com/Roccobot/CraftLook/releases/latest/download/appcast.xml`. Il repo è pubblico,
-  e così l'appcast arriva insieme al suo ZIP, senza commit su `main` né sull'hub; `scripts/appcast.py`
-  lo riscrive a ogni release con la versione nuova in testa e le voci dell'appcast pubblicato.
+  e così l'appcast arriva insieme al suo archivio, senza commit su `main` né sull'hub; `scripts/appcast.py`
+  lo riscrive a ogni release con la versione nuova in testa e le voci dell'appcast pubblicato. Se
+  l'appcast pubblicato non si legge per una ragione diversa dalla sua assenza (un limite di
+  richieste, un errore del server), lo script si ferma invece di pubblicarne uno senza le voci di
+  prima (0.5.1, `Tests/scripts_check.py`).
   Una release segnata come pre-release non è `latest`, quindi non arriva agli aggiornamenti.
 - ⚠️⚠️ **La chiave EdDSA è solo di CraftLook**: account `craftlook` del Portachiavi di Rocco, creata
   il 2026-11-22 con `generate_keys --account craftlook`; la metà pubblica è `SUPublicEDKey` in
   `configure.py`. La chiave privata non si legge, non si stampa, non si esporta e non entra mai nel
-  repo né in chat; la chiave di Aomidori non si tocca. `release.sh` firma lo ZIP con `sign_update
+  repo né in chat; la chiave di Aomidori non si tocca. `release.sh` firma l'archivio con `sign_update
   --account craftlook`, e la prima volta macOS chiede a Rocco di lasciarglielo fare.
 - **Ad hoc oggi, Developer ID domani**: Sparkle accetta un aggiornamento se la firma EdDSA è valida
   con la stessa chiave, anche quando cambia la firma del codice, quindi una copia ad hoc si aggiorna
@@ -151,8 +172,11 @@
 - `build.sh <cartella di build> [cartella dei renderer]`: senza il secondo argomento costruisce la
   variante che legge solo le anteprime già contenute nei file.
 - `Tests/check.py`, con l'eseguibile di `Tests/RenderCheck.swift`, prova la decodifica senza
-  l'editor sulle fixture sintetiche: la scelta del composito e il rifiuto dei file corrotti, senza
-  immagine o oltre i limiti, e il disegno della miniatura su tutto il contesto in pixel.
+  l'editor sulle fixture sintetiche: la scelta del composito, le sessioni di SoundCraft coi valori
+  impossibili, il rifiuto dei file corrotti, senza immagine o oltre i limiti (con stato d'uscita 1:
+  un crash non vale come rifiuto), i file collegati di un SVG, e il disegno della miniatura su tutto
+  il contesto in pixel.
+- `Tests/scripts_check.py` prova `scripts/appcast.py` senza rete.
 - `Tests/samples.py` scrive con le CLI dei renderer un piccolo progetto per ogni formato che solo un
   renderer sa mostrare (nessuno è nel repo), e `Tests/HeadlessCheck.swift` li fa disegnare; il
   progetto FilmCraft col medium cancellato deve mostrare il segnaposto, e il file SVG alto con

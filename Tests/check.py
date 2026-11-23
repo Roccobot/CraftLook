@@ -47,8 +47,6 @@ def all_files(d):
         'compressed.vectorcraft':gzip.compress(vector),
         'stream.vectorcraft':vector+b'\nVCBLOB1more data',
     }.items(): (d/name).write_bytes(data)
-    folder=d/'package.pcraft'; (folder/'composite').mkdir(parents=True)
-    (folder/'manifest.json').write_bytes(b'{}'); (folder/'composite/preview.png').write_bytes(red)
     session={'format_version':1,'name':'Prova','sample_rate':48000,'tempo':{'tempos':[{'tick':0,'bpm':120.0}],'meters':[{'tick':0,'numerator':4,'denominator':4}]},
              'markers':[{'name':'Strofa','start':96000}],'edit':{'playhead':48000},
              'tracks':[{'name':'Basso','kind':'Audio','color':[150,98,206],'active_playlist':0,'playlists':[{'clips':[{'name':'Basso','start':0,'length':192000}]}]},
@@ -59,6 +57,19 @@ def all_files(d):
     (d/'crowded.scraft').write_text(json.dumps(crowded))
     (d/'solo.scraft').write_text(json.dumps(dict(session,name='Sola',tracks=session['tracks'][:1])))
     (d/'notes.scraft').write_text(json.dumps({'name':'Senza formato','tracks':[]}))
+    # Values no session has: they are brought into range and the timeline is still drawn (choice
+    # Scraft-01). Before 0.5.1 each of them trapped on an Int conversion and took the extension down.
+    clip=session['tracks'][1]['playlists'][0]['clips'][0]
+    hostile={
+        'tiny-rate.scraft':dict(session,sample_rate=1e-300),
+        'huge-rate.scraft':dict(session,sample_rate=1e300),
+        'huge-bpm.scraft':dict(session,tempo={'tempos':[{'tick':0,'bpm':1e300}],'meters':[{'tick':0,'numerator':1e300,'denominator':1e-300}]}),
+        'far-clip.scraft':dict(session,tracks=[dict(session['tracks'][0],playlists=[{'clips':[{'name':'Lontano','start':1e19,'length':1e19}]}])]),
+        'far-marker.scraft':dict(session,markers=[{'name':'Fine','start':1e300}],edit={'playhead':1e300}),
+        'wild-pitch.scraft':dict(session,tracks=[dict(session['tracks'][1],playlists=[{'clips':[dict(clip,content={'Midi':{'sequence':{'notes':[
+            {'pitch':-9_000_000_000_000_000_000,'start':0,'length':900},{'pitch':9_000_000_000_000_000_000,'start':960,'length':1e300}]}}})]}])]),
+    }
+    for name,value in hostile.items(): (d/name).write_text(json.dumps(value))
     (d/'input.png').write_bytes(red)
     header=struct.pack('>4sH6xHIIHH',b'8BPS',1,3,2,2,8,3)
     (d/'image.psd').write_bytes(header + bytes(14) + bytes([255])*4 + bytes(8))
@@ -66,10 +77,14 @@ def all_files(d):
     (d/'absent.tcraft').write_bytes(zipped({'project.json':b'{}'}))
     (d/'wrong.figcraft').write_bytes(zipped({'thumbnail.png':red}))
     (d/'other.drawcraft').write_bytes(vector)
-    (d/'oversized.figcraft').write_bytes(zipped({'document.json':b'{}','thumbnail.png':b'x'*(33<<20)}))
+    # A real PNG, padded past the 32 MiB image limit with an ancillary chunk, so only the limit rejects it.
+    # The same padding under the limit is the control: that PNG must still be read.
+    def padded(size):
+        red_png=png(255,0,0); padding=b'x'*size
+        return red_png[:-12]+struct.pack('>I',size)+b'tEXt'+padding+struct.pack('>I',zlib.crc32(b'tEXt'+padding))+red_png[-12:]
+    (d/'oversized.figcraft').write_bytes(zipped({'document.json':b'{}','thumbnail.png':padded(33<<20)}))
+    (d/'padded.figcraft').write_bytes(zipped({'document.json':b'{}','thumbnail.png':padded(1<<20)}))
     (d/'forged.psd').write_bytes(red)
-    escape=d/'escape.pcraft'; (escape/'composite').mkdir(parents=True)
-    (escape/'manifest.json').write_bytes(b'{}'); (escape/'composite'/'preview.png').symlink_to(d/'input.png')
 
 if __name__=='__main__':
     command=pathlib.Path(sys.argv[1]).resolve()
@@ -83,19 +98,36 @@ if __name__=='__main__':
     checks+=1
     with tempfile.TemporaryDirectory() as tmp:
         d=pathlib.Path(tmp); all_files(d)
-        for name in ['fig.figcraft','design.designcraft','texture.tcraft','photo.pcraft','vector.vectorcraft','compressed.vectorcraft','stream.vectorcraft','inline-pdf.vectorcraft','linked-pdf.vectorcraft','compressed-pdf.vectorcraft','package.pcraft','image.psd']:
+        for name in ['fig.figcraft','padded.figcraft','design.designcraft','texture.tcraft','photo.pcraft','vector.vectorcraft','compressed.vectorcraft','stream.vectorcraft','inline-pdf.vectorcraft','linked-pdf.vectorcraft','compressed-pdf.vectorcraft','image.psd']:
             result=subprocess.run([command,d/name],capture_output=True)
             assert result.returncode==0,(name,result.stderr)
             expected='2048x2048 ff0000' if '-pdf.vectorcraft' in name else '2x2 ff0000'
             assert result.stdout.decode().strip()==expected,(name,result.stdout)
             checks+=1
         # A SoundCraft session is drawn as its timeline, on a square card whatever its tracks and length.
-        for name in ['session.scraft','crowded.scraft','solo.scraft']:
+        for name in ['session.scraft','crowded.scraft','solo.scraft','tiny-rate.scraft','huge-rate.scraft','huge-bpm.scraft','far-clip.scraft','far-marker.scraft','wild-pitch.scraft']:
             result=subprocess.run([command,d/name],capture_output=True)
             assert result.returncode==0 and result.stdout.decode().split()[0]=='2048x2048',(name,result.stdout,result.stderr)
             checks+=1
-        for name in ['notes.scraft','broken.figcraft','absent.tcraft','wrong.figcraft','other.drawcraft','oversized.figcraft','forged.psd','escape.pcraft']:
+        # A rejected file ends with status 1 and a message: a crash (a signal, a negative status)
+        # used to count as a rejection, and hid the SoundCraft traps above.
+        for name in ['notes.scraft','broken.figcraft','absent.tcraft','wrong.figcraft','other.drawcraft','oversized.figcraft','forged.psd']:
             result=subprocess.run([command,d/name],capture_output=True)
-            assert result.returncode!=0,(name,result.stdout)
+            assert result.returncode==1 and result.stderr,(name,result.returncode,result.stdout)
             checks+=1
+        # Linked SVG files: the renderer's own file names are refused in any letter case, and at most
+        # 32 files and 64 MiB in all reach the renderer.
+        red=png(255,0,0); links=d/'links'; links.mkdir()
+        names=['preview.png','CraftLook-Input.SVG','craftlook-document.svg','craftlook-output.png']+[f'n{i:02d}.png' for i in range(40)]
+        for name in names: (links/name).write_bytes(red)
+        (links/'drawing.svg').write_text('<svg xmlns="http://www.w3.org/2000/svg">'+''.join(f'<image href="{n}"/>' for n in names)+'</svg>')
+        result=subprocess.run([command,'--svg-resources',links/'drawing.svg'],capture_output=True)
+        expected=sorted(['preview.png']+[f'n{i:02d}.png' for i in range(31)])
+        assert result.returncode==0 and result.stdout.decode().split()==expected,('svg names',result.stdout,result.stderr)
+        checks+=1
+        for name in ['b1.png','b2.png','b3.png']: (links/name).write_bytes(red+b'\0'*(30<<20))
+        (links/'big.svg').write_text('<svg xmlns="http://www.w3.org/2000/svg"><image href="b1.png"/><image href="b2.png"/><image href="b3.png"/></svg>')
+        result=subprocess.run([command,'--svg-resources',links/'big.svg'],capture_output=True)
+        assert result.returncode==0 and result.stdout.decode().split()==['b1.png','b2.png'],('svg total',result.stdout,result.stderr)
+        checks+=1
         print(f'{checks} verifiche riuscite')

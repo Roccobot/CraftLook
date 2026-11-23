@@ -47,8 +47,14 @@ def previous_items(source):
                 text = response.read().decode()
         else:
             text = open(source, encoding="utf-8").read()
-    except (urllib.error.HTTPError, FileNotFoundError):
+    except FileNotFoundError:
         return "", []
+    except urllib.error.HTTPError as error:
+        # Only a missing appcast means there is none yet. Any other answer (a rate limit, a server
+        # error) would publish an appcast without the earlier versions, so the release stops here.
+        if error.code == 404:
+            return "", []
+        raise
     builds = [int(e.text) for e in ET.fromstring(text).iter(f"{{{SPARKLE}}}version")]
     start, end = text.find("    <item>"), text.rfind("</item>")
     return (text[start:end + len("</item>")] + "\n" if start >= 0 else ""), builds

@@ -14,7 +14,7 @@ if [[ "$identity" == "-" ]]; then sign+=(--timestamp=none); else sign+=(--timest
 app="$build/CraftLook.app"
 rm -rf "$app"
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources" "$build/cache"
-python3 configure.py "$app"
+if [[ -n "$engines" ]]; then python3 configure.py "$app"; else python3 configure.py "$app" --embedded-only; fi
 cp "Resources/CraftLook.icns" "$app/Contents/Resources/CraftLook.icns"
 # The marks of the window (Sources/Intro.swift), as vector PDFs (scripts/icons.py).
 cp Resources/tian.pdf Resources/github.pdf Resources/telegram.pdf "$app/Contents/Resources/"
@@ -96,7 +96,7 @@ if (( ${#updater[@]} )); then
   "${sign[@]}" "$framework"
 fi
 "${sign[@]}" "$app"
-# Nothing x86_64 may remain in a 0.5.0 build.
+# Nothing x86_64 may remain in the build: Intel was dropped in 0.5.0.
 while IFS= read -r -d '' f; do
   archs="$(xcrun lipo -archs "$f" 2>/dev/null)" || continue
   if [[ "$archs" == *x86_64* ]]; then

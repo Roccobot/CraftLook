@@ -24,10 +24,17 @@ private final class Renderer: NSObject, RenderServiceProtocol, NSXPCListenerDele
             reply(nil)
             return
         }
-        // The client waits 14 seconds from its request; a render has to end within 12 of it.
+        // The client waits 14 seconds from its request; a render has to end within 12 of it, and a
+        // request that gets a slot with less than 3 seconds left gives it back instead of starting a
+        // renderer that would be stopped at once.
         let deadline = DispatchTime.now() + 12
+        guard let tools = RenderXPC.helpers() else {
+            log.error("Renderer helpers are missing")
+            reply(nil)
+            return
+        }
         jobs.async {
-            guard self.slots.wait(timeout: deadline) == .success else {
+            guard self.slots.wait(timeout: deadline - 3) == .success else {
                 self.log.error("Renderer queue full until the deadline")
                 reply(nil)
                 return
@@ -38,14 +45,9 @@ private final class Renderer: NSObject, RenderServiceProtocol, NSXPCListenerDele
             do {
                 try fm.createDirectory(at: temp, withIntermediateDirectories: false, attributes: [.posixPermissions: 0o700])
                 defer { try? fm.removeItem(at: temp) }
-                let file = temp.appendingPathComponent("project." + fileExtension)
+                let file = temp.appendingPathComponent("craftlook-input." + fileExtension)
                 try document.write(to: file)
                 try SVGResource.write(resources, to: temp, limit: RenderXPC.imageLimit)
-                guard let tools = RenderXPC.helpers() else {
-                    self.log.error("Renderer helpers are missing")
-                    reply(nil)
-                    return
-                }
                 let image = HeadlessRenderer.render(file, maxSide: maxSide, tools: tools, deadline: deadline)
                 reply(image.flatMap(RenderXPC.png))
             } catch {
